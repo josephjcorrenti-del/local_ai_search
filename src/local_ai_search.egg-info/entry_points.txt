@@ -1,2 +1,0 @@
-[console_scripts]
-local-ai-search = local_ai_search.cli:main
