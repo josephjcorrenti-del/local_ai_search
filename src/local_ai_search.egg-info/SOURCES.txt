@@ -1,0 +1,13 @@
+README.md
+pyproject.toml
+src/local_ai_search/__init__.py
+src/local_ai_search/cli.py
+src/local_ai_search/config.py
+src/local_ai_search/evidence.py
+src/local_ai_search/logging.py
+src/local_ai_search/paths.py
+src/local_ai_search.egg-info/PKG-INFO
+src/local_ai_search.egg-info/SOURCES.txt
+src/local_ai_search.egg-info/dependency_links.txt
+src/local_ai_search.egg-info/entry_points.txt
+src/local_ai_search.egg-info/top_level.txt
