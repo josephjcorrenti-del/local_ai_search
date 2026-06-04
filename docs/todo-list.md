@@ -34,18 +34,18 @@
 
 [x] add `status` command
 [ ] add `doctor` command
-[ ] add `config-show` command
+[x] add `config-show` command
 [x] add basic CLI tests
 [x] add shell-safe human-readable output
 
 ## Configuration
 
-[ ] add config model
-[ ] default `search_provider = local_search`
-[ ] document supported providers
-[ ] keep DuckDuckGo supported but non-default
-[ ] reject unsupported providers
-[ ] add config tests
+[x] add config model
+[x] default `search_provider = local_search`
+[x] document supported providers
+[x] keep DuckDuckGo supported but non-default
+[x] reject unsupported providers
+[x] add config tests
 
 ## Evidence contract
 

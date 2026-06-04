@@ -11,3 +11,16 @@ def test_status_command(capsys, monkeypatch):
     assert "local_ai_search status" in output
     assert "data_root:" in output
     assert "evidence_dir:" in output
+
+
+def test_config_show_command(capsys, monkeypatch):
+    monkeypatch.setattr("sys.argv", ["local-ai-search", "config-show"])
+
+    result = main()
+    output = capsys.readouterr().out
+
+    assert result == 0
+    assert "local_ai_search config" in output
+    assert "search_provider: local_search" in output
+    assert "- local_search" in output
+    assert "- duckduckgo" in output

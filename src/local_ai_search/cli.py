@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 
+from local_ai_search.config import SUPPORTED_SEARCH_PROVIDERS, load_config
 from local_ai_search.paths import ensure_runtime_dirs, get_paths
 
 
@@ -20,12 +21,29 @@ def cmd_status(_args: argparse.Namespace) -> int:
     return 0
 
 
+
+def cmd_config_show(_args: argparse.Namespace) -> int:
+    config = load_config()
+
+    print("[*] local_ai_search config")
+    print()
+    print(f"[*] search_provider: {config.search_provider}")
+    print()
+    print("[*] supported providers")
+    for provider in SUPPORTED_SEARCH_PROVIDERS:
+        print(f"[*]   - {provider}")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="local-ai-search")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     status_parser = subparsers.add_parser("status")
     status_parser.set_defaults(func=cmd_status)
+
+    config_show_parser = subparsers.add_parser("config-show")
+    config_show_parser.set_defaults(func=cmd_config_show)
 
     return parser
 
