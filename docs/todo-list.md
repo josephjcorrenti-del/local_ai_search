@@ -2,25 +2,25 @@
 
 ## Bootstrap
 
-[ ] create `~/local_ai_search` repo
-[ ] add `pyproject.toml`
-[ ] add package directory `src/local_ai_search`
-[ ] add command entry point `local-ai-search`
-[ ] add `.gitignore`
-[ ] add `README.md`
-[ ] add `docs/decisions.md`
-[ ] add `docs/todo-list.md`
+[x] create `~/local_ai_search` repo
+[x] add `pyproject.toml`
+[x] add package directory `src/local_ai_search`
+[x] add command entry point `local-ai-search`
+[x] add `.gitignore`
+[x] add `README.md`
+[x] add `docs/decisions.md`
+[x] add `docs/todo-list.md`
 
 ## Paths and runtime layout
 
-[ ] add `paths.py`
-[ ] define app data root
-[ ] define logs directory
-[ ] define run log path
-[ ] define evidence directory
-[ ] define exports directory
-[ ] ensure directories are created safely
-[ ] add path tests
+[x] add `paths.py`
+[x] define app data root
+[x] define logs directory
+[x] define run log path
+[x] define evidence directory
+[x] define exports directory
+[x] ensure directories are created safely
+[x] add path tests
 
 ## Logging
 
@@ -32,11 +32,11 @@
 
 ## CLI foundation
 
-[ ] add `status` command
+[x] add `status` command
 [ ] add `doctor` command
 [ ] add `config-show` command
-[ ] add basic CLI tests
-[ ] add shell-safe human-readable output
+[x] add basic CLI tests
+[x] add shell-safe human-readable output
 
 ## Configuration
 
@@ -77,17 +77,17 @@
 
 ## Tests and CI
 
-[ ] add pytest tests
-[ ] add `scripts/tests/run_all.sh`
-[ ] add GitHub Actions workflow
-[ ] verify tests pass locally
+[x] add pytest tests
+[x] add `scripts/tests/run_all.sh`
+[x] add GitHub Actions workflow
+[x] verify tests pass locally
 [ ] verify GitHub Actions pass
 
 ## Git
 
-[ ] initialize git repo
-[ ] make first commit
+[x] initialize git repo
+[x] make first commit
 [ ] create GitHub repo
 [ ] push main branch
-[ ] verify clean `git status`
+[x] verify clean `git status`
 
