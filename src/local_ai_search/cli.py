@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import argparse
 
-from local_ai_search.config import SUPPORTED_SEARCH_PROVIDERS, load_config
+from local_ai_search.config import ConfigError, SUPPORTED_SEARCH_PROVIDERS, load_config
 from local_ai_search.paths import ensure_runtime_dirs, get_paths
 
 
@@ -20,6 +20,45 @@ def cmd_status(_args: argparse.Namespace) -> int:
     print(f"[*]   exports_dir:  {paths.exports_dir}")
     return 0
 
+
+
+
+def _check_writable_dir(path) -> bool:
+    path.mkdir(parents=True, exist_ok=True)
+    test_file = path / ".write_test"
+    test_file.write_text("ok", encoding="utf-8")
+    test_file.unlink()
+    return True
+
+
+def cmd_doctor(_args: argparse.Namespace) -> int:
+    paths = ensure_runtime_dirs()
+
+    print("[*] local_ai_search doctor")
+    print()
+
+    checks = [
+        ("data_root writable", paths.data_root),
+        ("log_dir writable", paths.log_dir),
+        ("evidence_dir writable", paths.evidence_dir),
+        ("exports_dir writable", paths.exports_dir),
+    ]
+
+    for label, path in checks:
+        _check_writable_dir(path)
+        print(f"[✓] {label}")
+
+    try:
+        config = load_config()
+    except ConfigError as exc:
+        print(f"[x] config loaded: {exc}")
+        return 1
+
+    print("[✓] config loaded")
+    print(f"[✓] search_provider valid: {config.search_provider}")
+    print()
+    print("[*] doctor passed")
+    return 0
 
 
 def cmd_config_show(_args: argparse.Namespace) -> int:
@@ -41,6 +80,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     status_parser = subparsers.add_parser("status")
     status_parser.set_defaults(func=cmd_status)
+
+    doctor_parser = subparsers.add_parser("doctor")
+    doctor_parser.set_defaults(func=cmd_doctor)
 
     config_show_parser = subparsers.add_parser("config-show")
     config_show_parser.set_defaults(func=cmd_config_show)

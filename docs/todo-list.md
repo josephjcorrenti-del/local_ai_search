@@ -33,7 +33,7 @@
 ## CLI foundation
 
 [x] add `status` command
-[ ] add `doctor` command
+[x] add `doctor` command
 [x] add `config-show` command
 [x] add basic CLI tests
 [x] add shell-safe human-readable output
