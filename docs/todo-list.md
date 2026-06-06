@@ -54,14 +54,14 @@
 
 ## Evidence contract
 
-[ ] add sample local_search evidence fixture
-[ ] add evidence loader
-[ ] validate `retrieval_version`
-[ ] validate required fields
-[ ] enforce bounded evidence chars
-[ ] add evidence formatter
-[ ] add malformed evidence tests
-[ ] add unsupported version tests
+[x] add sample local_search evidence fixture
+[x] add evidence loader
+[x] validate `retrieval_version`
+[x] validate required fields
+[x] enforce bounded evidence chars
+[x] add evidence formatter
+[x] add malformed evidence tests
+[x] add unsupported version test
 
 ## First integration
 
