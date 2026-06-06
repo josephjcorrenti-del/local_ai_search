@@ -74,6 +74,18 @@
 [ ] document dependency expectations for `local-ai`
 [ ] document dependency expectations for `local-search`
 [ ] document status checks for all three tools
+[ ] make `status` check full ecosystem by default
+[ ] make `doctor` check full ecosystem by default
+[ ] add `--self` flag to `status`
+[ ] add `--self` flag to `doctor`
+[ ] check `local-ai status`
+[ ] check `local-search status`
+[ ] check `local-ai-search status --self`
+[ ] check `local-ai-search doctor --self`
+[ ] document that full ecosystem checks are the default
+[ ] add tests for `--self`
+[ ] add tests for ecosystem status/doctor behavior
+[ ] add `--help` coverage later
 
 ## Tests and CI
 

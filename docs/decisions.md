@@ -94,3 +94,15 @@ Logs should live under:
 
 This mirrors the layout used by `local_ai` and `local_search`.
 
+
+local_ai_search status and doctor should default to checking the full AI/search ecosystem.
+
+That means:
+- local_ai_search
+- local_ai
+- local_search
+
+A `--self` flag may limit checks to local_ai_search only.
+
+Reason:
+local_ai_search exists to integrate AI and search. A healthy integration project is not useful if the underlying AI or search commands are unavailable.
