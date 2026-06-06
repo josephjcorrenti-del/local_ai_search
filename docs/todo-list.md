@@ -65,8 +65,8 @@
 
 ## First integration
 
-[ ] add `inspect-evidence PATH`
-[ ] add explicit evidence consumption logging
+[x] add `inspect-evidence PATH`
+[x] add explicit evidence consumption logging
 [ ] decide first AI handoff command
 [ ] avoid hidden retrieval
 [ ] avoid hidden prompt injection

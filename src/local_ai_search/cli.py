@@ -1,9 +1,16 @@
 from __future__ import annotations
 
 import argparse
+from pathlib import Path
 import time
 
 from local_ai_search.config import ConfigError, SUPPORTED_SEARCH_PROVIDERS, load_config
+from local_ai_search.evidence import (
+    EvidenceError,
+    evidence_char_count,
+    format_evidence_preview,
+    load_evidence_from_local_search,
+)
 from local_ai_search.logging import elapsed_ms_get, log_event
 from local_ai_search.output import fail_print, info_print, pass_print
 from local_ai_search.paths import ensure_runtime_dirs, get_paths
@@ -152,6 +159,52 @@ def cmd_config_show(_args: argparse.Namespace) -> int:
         raise
 
 
+def cmd_inspect_evidence(args: argparse.Namespace) -> int:
+    started_at = time.perf_counter()
+    log_event("evidence.inspect.start", command="inspect-evidence", event_outcome="start")
+
+    try:
+        evidence = load_evidence_from_local_search(
+            Path(args.path),
+            limit=args.limit,
+            max_chars=args.max_chars,
+        )
+
+        info_print("local_ai_search evidence")
+        print()
+        print(f"[*] retrieval_version: {evidence.get('retrieval_version')}")
+        print(f"[*] artifact_type:      {evidence.get('artifact_type')}")
+        print(f"[*] provider:           {evidence.get('provider')}")
+        print(f"[*] query:              {evidence.get('query')}")
+        print(f"[*] result_count:       {len(evidence.get('results', []))}")
+        print(f"[*] char_count:         {evidence_char_count(evidence)}")
+        print()
+        print(format_evidence_preview(evidence))
+
+        log_event(
+            "evidence.inspect.done",
+            command="inspect-evidence",
+            event_outcome="success",
+            elapsed_ms=elapsed_ms_get(started_at),
+            result_count=len(evidence.get("results", [])),
+            #char_count=evidence_char_count(evidence),
+        )
+        return 0
+
+    except EvidenceError as exc:
+        fail_print(str(exc))
+        log_event(
+            "evidence.inspect.error",
+            level="ERROR",
+            command="inspect-evidence",
+            event_outcome="failure",
+            error_message=str(exc),
+            error_type=type(exc).__name__,
+            elapsed_ms=elapsed_ms_get(started_at),
+        )
+        return 1
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="local-ai-search")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -164,6 +217,12 @@ def build_parser() -> argparse.ArgumentParser:
 
     config_show_parser = subparsers.add_parser("config-show")
     config_show_parser.set_defaults(func=cmd_config_show)
+
+    inspect_evidence_parser = subparsers.add_parser("inspect-evidence")
+    inspect_evidence_parser.add_argument("path")
+    inspect_evidence_parser.add_argument("--limit", type=int, default=5)
+    inspect_evidence_parser.add_argument("--max-chars", type=int, default=4000)
+    inspect_evidence_parser.set_defaults(func=cmd_inspect_evidence)
 
     return parser
 

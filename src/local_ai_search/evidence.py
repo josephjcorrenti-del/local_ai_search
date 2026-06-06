@@ -27,20 +27,25 @@ def load_evidence_from_local_search(
     limit: int = 5,
     max_chars: int = 4000,
 ) -> dict[str, Any]:
-    result = subprocess.run(
-        [
-            "local-search",
-            "evidence",
-            str(path),
-            "--limit",
-            str(limit),
-            "--max-chars",
-            str(max_chars),
-        ],
-        check=False,
-        capture_output=True,
-        text=True,
-    )
+    try:
+        result = subprocess.run(
+            [
+                "local-search",
+                "evidence",
+                str(path),
+                "--limit",
+                str(limit),
+                "--max-chars",
+                str(max_chars),
+            ],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+    except FileNotFoundError as exc:
+        raise EvidenceError(
+            "local-search command not found; install local_search or activate an environment where local-search is on PATH"
+        ) from exc
 
     if result.returncode != 0:
         raise EvidenceError(result.stderr.strip() or "local-search evidence failed")
