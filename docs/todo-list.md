@@ -24,11 +24,11 @@
 
 ## Logging
 
-[ ] add structured NDJSON logging
-[ ] write logs to `run.log`
-[ ] support verbose stdout logging
-[ ] include event names, timestamps, command, outcome, elapsed_ms, and errors
-[ ] preserve ELK-friendly event shape
+[x] add structured NDJSON logging
+[x] write logs to `run.log`
+[x] support verbose stdout logging
+[x] include event names, timestamps, command, outcome, elapsed_ms, and errors
+[x] preserve ELK-friendly event shape
 
 ## CLI foundation
 

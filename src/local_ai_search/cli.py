@@ -5,6 +5,7 @@ import time
 
 from local_ai_search.config import ConfigError, SUPPORTED_SEARCH_PROVIDERS, load_config
 from local_ai_search.logging import elapsed_ms_get, log_event
+from local_ai_search.output import fail_print, info_print, pass_print
 from local_ai_search.paths import ensure_runtime_dirs, get_paths
 
 
@@ -15,9 +16,9 @@ def cmd_status(_args: argparse.Namespace) -> int:
     try:
         paths = ensure_runtime_dirs()
 
-        print("[*] local_ai_search status")
+        info_print("local_ai_search status")
         print()
-        print("[*] paths")
+        info_print("paths")
         print(f"[*]   repo_root:    {paths.repo_root}")
         print(f"[*]   data_root:    {paths.data_root}")
         print(f"[*]   log_dir:      {paths.log_dir}")
@@ -62,7 +63,7 @@ def cmd_doctor(_args: argparse.Namespace) -> int:
     try:
         paths = ensure_runtime_dirs()
 
-        print("[*] local_ai_search doctor")
+        info_print("local_ai_search doctor")
         print()
 
         checks = [
@@ -74,12 +75,12 @@ def cmd_doctor(_args: argparse.Namespace) -> int:
 
         for label, path in checks:
             _check_writable_dir(path)
-            print(f"[✓] {label}")
+            pass_print(label)
 
         try:
             config = load_config()
         except ConfigError as exc:
-            print(f"[x] config loaded: {exc}")
+            fail_print(f"config loaded: {exc}")
             log_event(
                 "doctor.error",
                 level="ERROR",
@@ -91,10 +92,10 @@ def cmd_doctor(_args: argparse.Namespace) -> int:
             )
             return 1
 
-        print("[✓] config loaded")
-        print(f"[✓] search_provider valid: {config.search_provider}")
+        pass_print("config loaded")
+        pass_print(f"search_provider valid: {config.search_provider}")
         print()
-        print("[*] doctor passed")
+        info_print("doctor passed")
 
         log_event(
             "doctor.done",
@@ -123,13 +124,13 @@ def cmd_config_show(_args: argparse.Namespace) -> int:
     try:
         config = load_config()
 
-        print("[*] local_ai_search config")
+        info_print("local_ai_search config")
         print()
         print(f"[*] search_provider: {config.search_provider}")
         print()
-        print("[*] supported providers")
+        info_print("supported providers")
         for provider in SUPPORTED_SEARCH_PROVIDERS:
-            print(f"[*]   - {provider}")
+            info_print(f"  - {provider}")
 
         log_event(
             "config_show.done",
