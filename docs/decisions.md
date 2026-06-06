@@ -66,17 +66,7 @@ Direct Python imports are not the first boundary.
 
 Subprocess and JSON contracts are preferred first because they preserve project independence and make behavior inspectable.
 
-## 2026-06-04 - No hidden retrieval
 
-`local_ai_search` must not perform hidden background retrieval.
-
-Search must be explicit.
-
-Evidence loading must be explicit.
-
-Prompt construction must use bounded evidence windows.
-
-Logs remain the source of truth.
 
 ## 2026-06-04 - Runtime data
 
@@ -106,3 +96,25 @@ A `--self` flag may limit checks to local_ai_search only.
 
 Reason:
 local_ai_search exists to integrate AI and search. A healthy integration project is not useful if the underlying AI or search commands are unavailable.
+
+
+## 2026-06-04 - No hidden retrieval
+
+`local_ai_search` must not perform hidden background retrieval.
+
+Search must be explicit.
+
+Evidence loading must be explicit.
+
+Prompt construction must use bounded evidence windows.
+
+Logs remain the source of truth.
+
+
+## 2026-06-06 - CLI output colors
+
+`local_ai_search` uses the same no-dependency CLI color pattern as `local_search`.
+
+Human CLI output may be colored unless `NO_COLOR` is set.
+
+Structured logs must never contain ANSI color codes.

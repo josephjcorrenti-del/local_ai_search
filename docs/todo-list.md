@@ -29,6 +29,7 @@
 [x] support verbose stdout logging
 [x] include event names, timestamps, command, outcome, elapsed_ms, and errors
 [x] preserve ELK-friendly event shape
+[x] verify `local-ai-search` logs appear in ELK
 
 ## CLI foundation
 
@@ -37,6 +38,10 @@
 [x] add `config-show` command
 [x] add basic CLI tests
 [x] add shell-safe human-readable output
+[x] add no-dependency CLI color helpers
+[x] color success markers
+[x] color failure markers
+[x] keep logs uncolored
 
 ## Configuration
 
