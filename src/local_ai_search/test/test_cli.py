@@ -38,3 +38,33 @@ def test_doctor_command(capsys, monkeypatch):
     assert "config loaded" in output
     assert "search_provider valid: local_search" in output
     assert "doctor passed" in output
+
+def test_inspect_evidence_json_command(capsys, monkeypatch):
+    from local_ai_search import cli
+
+    evidence = {
+        "retrieval_version": 1,
+        "artifact_type": "web_search_results",
+        "query": "test query",
+        "provider": "local_search",
+        "fetched_at": "2026-06-07T00:00:00+00:00",
+        "results": [],
+    }
+
+    def fake_load_evidence(path, *, limit, max_chars):
+        assert str(path) == "artifact.json"
+        assert limit == 5
+        assert max_chars == 4000
+        return evidence
+
+    monkeypatch.setattr(cli, "load_evidence_from_local_search", fake_load_evidence)
+
+    parser = cli.build_parser()
+    args = parser.parse_args(["inspect-evidence", "artifact.json", "--json"])
+
+    assert args.func(args) == 0
+
+    output = capsys.readouterr().out
+    assert '"retrieval_version": 1' in output
+    assert '"provider": "local_search"' in output
+    assert "[*] local_ai_search evidence" not in output

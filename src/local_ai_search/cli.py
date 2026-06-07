@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 import time
 
@@ -170,16 +171,19 @@ def cmd_inspect_evidence(args: argparse.Namespace) -> int:
             max_chars=args.max_chars,
         )
 
-        info_print("local_ai_search evidence")
-        print()
-        print(f"[*] retrieval_version: {evidence.get('retrieval_version')}")
-        print(f"[*] artifact_type:      {evidence.get('artifact_type')}")
-        print(f"[*] provider:           {evidence.get('provider')}")
-        print(f"[*] query:              {evidence.get('query')}")
-        print(f"[*] result_count:       {len(evidence.get('results', []))}")
-        print(f"[*] char_count:         {evidence_char_count(evidence)}")
-        print()
-        print(format_evidence_preview(evidence))
+        if args.json:
+            print(json.dumps(evidence, indent=2))
+        else:
+            info_print("local_ai_search evidence")
+            print()
+            print(f"[*] retrieval_version: {evidence.get('retrieval_version')}")
+            print(f"[*] artifact_type:      {evidence.get('artifact_type')}")
+            print(f"[*] provider:           {evidence.get('provider')}")
+            print(f"[*] query:              {evidence.get('query')}")
+            print(f"[*] result_count:       {len(evidence.get('results', []))}")
+            print(f"[*] char_count:         {evidence_char_count(evidence)}")
+            print()
+            print(format_evidence_preview(evidence))
 
         log_event(
             "evidence.inspect.done",
@@ -223,6 +227,12 @@ def build_parser() -> argparse.ArgumentParser:
     inspect_evidence_parser.add_argument("--limit", type=int, default=5)
     inspect_evidence_parser.add_argument("--max-chars", type=int, default=4000)
     inspect_evidence_parser.set_defaults(func=cmd_inspect_evidence)
+
+    inspect_evidence_parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Print validated evidence JSON.",
+    )
 
     return parser
 
