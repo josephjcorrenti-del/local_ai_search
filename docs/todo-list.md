@@ -67,14 +67,14 @@
 
 [x] add `inspect-evidence PATH`
 [x] add explicit evidence consumption logging
-[ ] decide first AI handoff command
-[ ] avoid hidden retrieval
-[ ] avoid hidden prompt injection
-[ ] document evidence flow
+[x] decide first AI handoff command
+[x] avoid hidden retrieval
+[x] avoid hidden prompt injection
+[x] document evidence flow
 
 ## Startup and availability
 
-[ ] verify `local-ai-search` works from any directory
+[x] verify `local-ai-search` works from any directory
 [ ] document post-reboot startup steps
 [ ] document dependency expectations for `local-ai`
 [ ] document dependency expectations for `local-search`
@@ -91,6 +91,11 @@
 [ ] add tests for `--self`
 [ ] add tests for ecosystem status/doctor behavior
 [ ] add `--help` coverage later
+
+## Other
+[ ] populate README
+[ ] local-ai-search --shell should go to local-search --shell
+[ ] verify duck duck go works in local-search, local-ai, and local-ai-search
 
 ## Tests and CI
 

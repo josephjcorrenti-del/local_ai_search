@@ -118,3 +118,14 @@ Logs remain the source of truth.
 Human CLI output may be colored unless `NO_COLOR` is set.
 
 Structured logs must never contain ANSI color codes.
+
+## 2026-06-06 - Evidence flow and default command shape
+
+The user-facing command shape should match the existing `local-search` and `local-ai` CLIs:
+
+```bash
+local-search "secure web browsers"
+local-ai "when should i move out of my parents house?"
+local-ai-search "how many legs do a cat have?"
+local-ai-search "how many legs do a cat have?" --web-only
+local-ai-search "how many legs do a cat have?" --ai-only
