@@ -138,3 +138,27 @@ def test_doctor_default_checks_ecosystem(capsys, monkeypatch):
         ["local-search", "doctor"],
         ["local-ai", "doctor"],
     ]
+
+import pytest
+from local_ai_search import cli
+
+
+@pytest.mark.parametrize(
+    "argv, expected",
+    [
+        (["local-ai-search", "--help"], "status"),
+        (["local-ai-search", "status", "--help"], "--self"),
+        (["local-ai-search", "doctor", "--help"], "--self"),
+        (["local-ai-search", "config-show", "--help"], "config-show"),
+        (["local-ai-search", "inspect-evidence", "--help"], "--json"),
+    ],
+)
+def test_help_commands(capsys, monkeypatch, argv, expected):
+    monkeypatch.setattr("sys.argv", argv)
+
+    with pytest.raises(SystemExit) as exc:
+        cli.main()
+
+    assert exc.value.code == 0
+    output = capsys.readouterr().out
+    assert expected in output
