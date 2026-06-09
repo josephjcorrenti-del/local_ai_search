@@ -75,27 +75,30 @@
 ## Startup and availability
 
 [x] verify `local-ai-search` works from any directory
-[ ] document post-reboot startup steps
-[ ] document dependency expectations for `local-ai`
-[ ] document dependency expectations for `local-search`
+[x] document post-reboot startup steps
+[x] document dependency expectations for `local-ai`
+[x] document dependency expectations for `local-search`
 [ ] document status checks for all three tools
-[ ] make `status` check full ecosystem by default
-[ ] make `doctor` check full ecosystem by default
-[ ] add `--self` flag to `status`
-[ ] add `--self` flag to `doctor`
-[ ] check `local-ai status`
-[ ] check `local-search status`
-[ ] check `local-ai-search status --self`
-[ ] check `local-ai-search doctor --self`
-[ ] document that full ecosystem checks are the default
-[ ] add tests for `--self`
-[ ] add tests for ecosystem status/doctor behavior
+[x] make `status` check full ecosystem by default
+[x] make `doctor` check full ecosystem by default
+[x] add `--self` flag to `status`
+[x] add `--self` flag to `doctor`
+[x] check `local-ai status`
+[x] check `local-search status`
+[x] check `local-ai-search status --self`
+[x] check `local-ai-search doctor --self`
+[x] document that full ecosystem checks are the default
+[x] add tests for `--self`
+[x] add tests for ecosystem status/doctor behavior
 [ ] add `--help` coverage later
 
 ## Other
-[ ] populate README
-[ ] local-ai-search --shell should go to local-search --shell
+[x] populate README
+[ ] local-ai-search --shell should go to local-search --shell (which should use search?)
 [ ] verify duck duck go works in local-search, local-ai, and local-ai-search
+[ ] discuss usage and testing of configs
+
+
 
 ## Tests and CI
 

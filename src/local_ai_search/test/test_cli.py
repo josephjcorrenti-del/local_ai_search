@@ -68,3 +68,73 @@ def test_inspect_evidence_json_command(capsys, monkeypatch):
     assert '"retrieval_version": 1' in output
     assert '"provider": "local_search"' in output
     assert "[*] local_ai_search evidence" not in output
+
+
+def test_status_self_skips_ecosystem(capsys, monkeypatch):
+    from local_ai_search import cli
+
+    calls = []
+
+    def fake_external(command):
+        calls.append(command)
+        return 0
+
+    monkeypatch.setattr(cli, "_external_command_run", fake_external)
+    monkeypatch.setattr("sys.argv", ["local-ai-search", "status", "--self"])
+
+    assert cli.main() == 0
+    assert calls == []
+
+
+def test_status_default_checks_ecosystem(capsys, monkeypatch):
+    from local_ai_search import cli
+
+    calls = []
+
+    def fake_external(command):
+        calls.append(command)
+        return 0
+
+    monkeypatch.setattr(cli, "_external_command_run", fake_external)
+    monkeypatch.setattr("sys.argv", ["local-ai-search", "status"])
+
+    assert cli.main() == 0
+    assert calls == [
+        ["local-search", "status"],
+        ["local-ai", "status"],
+    ]
+
+
+def test_doctor_self_skips_ecosystem(capsys, monkeypatch):
+    from local_ai_search import cli
+
+    calls = []
+
+    def fake_external(command):
+        calls.append(command)
+        return 0
+
+    monkeypatch.setattr(cli, "_external_command_run", fake_external)
+    monkeypatch.setattr("sys.argv", ["local-ai-search", "doctor", "--self"])
+
+    assert cli.main() == 0
+    assert calls == []
+
+
+def test_doctor_default_checks_ecosystem(capsys, monkeypatch):
+    from local_ai_search import cli
+
+    calls = []
+
+    def fake_external(command):
+        calls.append(command)
+        return 0
+
+    monkeypatch.setattr(cli, "_external_command_run", fake_external)
+    monkeypatch.setattr("sys.argv", ["local-ai-search", "doctor"])
+
+    assert cli.main() == 0
+    assert calls == [
+        ["local-search", "doctor"],
+        ["local-ai", "doctor"],
+    ]

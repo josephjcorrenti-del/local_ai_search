@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+import subprocess
 import time
 
 from local_ai_search.config import ConfigError, SUPPORTED_SEARCH_PROVIDERS, load_config
@@ -17,7 +18,7 @@ from local_ai_search.output import fail_print, info_print, pass_print
 from local_ai_search.paths import ensure_runtime_dirs, get_paths
 
 
-def cmd_status(_args: argparse.Namespace) -> int:
+def cmd_status(args: argparse.Namespace) -> int:
     started_at = time.perf_counter()
     log_event("status.start", command="status", event_outcome="start")
 
@@ -34,13 +35,19 @@ def cmd_status(_args: argparse.Namespace) -> int:
         print(f"[*]   evidence_dir: {paths.evidence_dir}")
         print(f"[*]   exports_dir:  {paths.exports_dir}")
 
+        exit_code = 0
+
+        if not args.self_only:
+            exit_code = _ecosystem_status_run()
+
         log_event(
             "status.done",
             command="status",
-            event_outcome="success",
+            event_outcome="success" if exit_code == 0 else "failure",
             elapsed_ms=elapsed_ms_get(started_at),
         )
-        return 0
+
+        return exit_code
     except Exception as exc:
         log_event(
             "status.error",
@@ -64,7 +71,7 @@ def _check_writable_dir(path) -> bool:
     return True
 
 
-def cmd_doctor(_args: argparse.Namespace) -> int:
+def cmd_doctor(args: argparse.Namespace) -> int:
     started_at = time.perf_counter()
     log_event("doctor.start", command="doctor", event_outcome="start")
 
@@ -105,13 +112,19 @@ def cmd_doctor(_args: argparse.Namespace) -> int:
         print()
         info_print("doctor passed")
 
+        exit_code = 0
+
+        if not args.self_only:
+            exit_code = _ecosystem_doctor_run()
+
         log_event(
             "doctor.done",
             command="doctor",
-            event_outcome="success",
+            event_outcome="success" if exit_code == 0 else "failure",
             elapsed_ms=elapsed_ms_get(started_at),
         )
-        return 0
+
+        return exit_code
     except Exception as exc:
         log_event(
             "doctor.error",
@@ -209,6 +222,40 @@ def cmd_inspect_evidence(args: argparse.Namespace) -> int:
         return 1
 
 
+def _external_command_run(command: list[str]) -> int:
+    print()
+    info_print(" ".join(command))
+
+    try:
+        result = subprocess.run(command, check=False)
+    except FileNotFoundError:
+        fail_print(f"command not found: {command[0]}")
+        return 1
+
+    return result.returncode
+
+
+def _ecosystem_status_run() -> int:
+    exit_code = 0
+    exit_code = max(exit_code, _external_command_run(["local-search", "status"]))
+    exit_code = max(exit_code, _external_command_run(["local-ai", "status"]))
+    return exit_code
+
+
+def _ecosystem_doctor_run() -> int:
+    exit_code = 0
+    exit_code = max(exit_code, _external_command_run(["local-search", "doctor"]))
+    exit_code = max(exit_code, _external_command_run(["local-ai", "doctor"]))
+    return exit_code
+
+
+def _ecosystem_config_show_run() -> int:
+    exit_code = 0
+    exit_code = max(exit_code, _external_command_run(["local-search", "config-show"]))
+    exit_code = max(exit_code, _external_command_run(["local-ai", "config-show"]))
+    return exit_code
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="local-ai-search")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -216,8 +263,22 @@ def build_parser() -> argparse.ArgumentParser:
     status_parser = subparsers.add_parser("status")
     status_parser.set_defaults(func=cmd_status)
 
+    status_parser.add_argument(
+        "--self",
+        action="store_true",
+        dest="self_only",
+        help="Check only local_ai_search.",
+    )
+
     doctor_parser = subparsers.add_parser("doctor")
     doctor_parser.set_defaults(func=cmd_doctor)
+
+    doctor_parser.add_argument(
+        "--self",
+        action="store_true",
+        dest="self_only",
+        help="Check only local_ai_search.",
+    )
 
     config_show_parser = subparsers.add_parser("config-show")
     config_show_parser.set_defaults(func=cmd_config_show)
