@@ -2,7 +2,7 @@ from local_ai_search.cli import main
 
 
 def test_status_command(capsys, monkeypatch):
-    monkeypatch.setattr("sys.argv", ["local-ai-search", "status"])
+    monkeypatch.setattr("sys.argv", ["local-ai-search", "status", "--self"])
 
     result = main()
     output = capsys.readouterr().out
@@ -27,7 +27,7 @@ def test_config_show_command(capsys, monkeypatch):
 
 
 def test_doctor_command(capsys, monkeypatch):
-    monkeypatch.setattr("sys.argv", ["local-ai-search", "doctor"])
+    monkeypatch.setattr("sys.argv", ["local-ai-search", "doctor", "--self"])
 
     result = main()
     output = capsys.readouterr().out
