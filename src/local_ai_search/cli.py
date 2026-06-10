@@ -6,6 +6,7 @@ from pathlib import Path
 import subprocess
 import time
 
+from local_ai_search.adapters import local_ai, local_search
 from local_ai_search.adapters.subprocesses import run_external_command
 from local_ai_search.config import ConfigError, SUPPORTED_SEARCH_PROVIDERS, load_config
 from local_ai_search.evidence import (
@@ -16,7 +17,7 @@ from local_ai_search.evidence import (
 )
 from local_ai_search.logging import elapsed_ms_get, log_event
 from local_ai_search.output import fail_print, info_print, pass_print
-from local_ai_search.paths import ensure_runtime_dirs, get_paths
+from local_ai_search.paths import ensure_runtime_dirs
 
 
 def cmd_status(args: argparse.Namespace) -> int:
@@ -236,17 +237,33 @@ def _external_command_run(command: list[str]) -> int:
     return exit_code
 
 
+def _adapter_exit_code_normalize(exit_code: int, command_name: str) -> int:
+    if exit_code == 127:
+        fail_print(f"command not found: {command_name}")
+        return 1
+
+    return exit_code
+
+
 def _ecosystem_status_run() -> int:
     exit_code = 0
-    exit_code = max(exit_code, _external_command_run(["local-search", "status"]))
-    exit_code = max(exit_code, _external_command_run(["local-ai", "status"]))
+    print()
+    info_print("local-search status")
+    exit_code = max(exit_code, _adapter_exit_code_normalize(local_search.run_status(), "local-search"))
+    print()
+    info_print("local-ai status")
+    exit_code = max(exit_code, _adapter_exit_code_normalize(local_ai.run_status(), "local-ai"))
     return exit_code
 
 
 def _ecosystem_doctor_run() -> int:
     exit_code = 0
-    exit_code = max(exit_code, _external_command_run(["local-search", "doctor"]))
-    exit_code = max(exit_code, _external_command_run(["local-ai", "doctor"]))
+    print()
+    info_print("local-search doctor")
+    exit_code = max(exit_code, _adapter_exit_code_normalize(local_search.run_doctor(), "local-search"))
+    print()
+    info_print("local-ai doctor")
+    exit_code = max(exit_code, _adapter_exit_code_normalize(local_ai.run_doctor(), "local-ai"))
     return exit_code
 
 

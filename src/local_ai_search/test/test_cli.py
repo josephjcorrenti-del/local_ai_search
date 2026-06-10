@@ -72,14 +72,20 @@ def test_inspect_evidence_json_command(capsys, monkeypatch):
 
 def test_status_self_skips_ecosystem(capsys, monkeypatch):
     from local_ai_search import cli
+    from local_ai_search.adapters import local_ai, local_search
 
     calls = []
 
-    def fake_external(command):
-        calls.append(command)
+    def fake_search_status():
+        calls.append("local-search-status")
         return 0
 
-    monkeypatch.setattr(cli, "_external_command_run", fake_external)
+    def fake_ai_status():
+        calls.append("local-ai-status")
+        return 0
+
+    monkeypatch.setattr(local_search, "run_status", fake_search_status)
+    monkeypatch.setattr(local_ai, "run_status", fake_ai_status)
     monkeypatch.setattr("sys.argv", ["local-ai-search", "status", "--self"])
 
     assert cli.main() == 0
@@ -88,20 +94,27 @@ def test_status_self_skips_ecosystem(capsys, monkeypatch):
 
 def test_status_default_checks_ecosystem(capsys, monkeypatch):
     from local_ai_search import cli
+    from local_ai_search.adapters import local_ai, local_search
 
     calls = []
 
-    def fake_external(command):
-        calls.append(command)
+    def fake_search_status():
+        calls.append("local-search-status")
         return 0
 
-    monkeypatch.setattr(cli, "_external_command_run", fake_external)
+    def fake_ai_status():
+        calls.append("local-ai-status")
+        return 0
+
+    monkeypatch.setattr(local_search, "run_status", fake_search_status)
+    monkeypatch.setattr(local_ai, "run_status", fake_ai_status)
     monkeypatch.setattr("sys.argv", ["local-ai-search", "status"])
 
     assert cli.main() == 0
+
     assert calls == [
-        ["local-search", "status"],
-        ["local-ai", "status"],
+        "local-search-status",
+        "local-ai-status",
     ]
 
 
@@ -123,20 +136,27 @@ def test_doctor_self_skips_ecosystem(capsys, monkeypatch):
 
 def test_doctor_default_checks_ecosystem(capsys, monkeypatch):
     from local_ai_search import cli
+    from local_ai_search.adapters import local_ai, local_search
 
     calls = []
 
-    def fake_external(command):
-        calls.append(command)
+    def fake_search_doctor():
+        calls.append("local-search-doctor")
         return 0
 
-    monkeypatch.setattr(cli, "_external_command_run", fake_external)
+    def fake_ai_doctor():
+        calls.append("local-ai-doctor")
+        return 0
+
+    monkeypatch.setattr(local_search, "run_doctor", fake_search_doctor)
+    monkeypatch.setattr(local_ai, "run_doctor", fake_ai_doctor)
     monkeypatch.setattr("sys.argv", ["local-ai-search", "doctor"])
 
     assert cli.main() == 0
+
     assert calls == [
-        ["local-search", "doctor"],
-        ["local-ai", "doctor"],
+        "local-search-doctor",
+        "local-ai-doctor",
     ]
 
 import pytest

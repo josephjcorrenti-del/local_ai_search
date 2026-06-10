@@ -120,8 +120,8 @@
 
 ## Phase 2 – Implementation Candidates
 
-[ ] add subprocess adapter module for local-search
-[ ] add subprocess adapter module for local-ai
+[x] add subprocess adapter module for local-search
+[x] add subprocess adapter module for local-ai
 [ ] implement integration.py orchestration layer
 [ ] implement local-ai-search "QUERY"
 [ ] implement local-ai-search "QUERY" --ai-only
