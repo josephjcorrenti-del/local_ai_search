@@ -6,6 +6,7 @@ from pathlib import Path
 import subprocess
 import time
 
+from local_ai_search.adapters.subprocesses import run_external_command
 from local_ai_search.config import ConfigError, SUPPORTED_SEARCH_PROVIDERS, load_config
 from local_ai_search.evidence import (
     EvidenceError,
@@ -226,13 +227,13 @@ def _external_command_run(command: list[str]) -> int:
     print()
     info_print(" ".join(command))
 
-    try:
-        result = subprocess.run(command, check=False)
-    except FileNotFoundError:
+    exit_code = run_external_command(command)
+
+    if exit_code == 127:
         fail_print(f"command not found: {command[0]}")
         return 1
 
-    return result.returncode
+    return exit_code
 
 
 def _ecosystem_status_run() -> int:

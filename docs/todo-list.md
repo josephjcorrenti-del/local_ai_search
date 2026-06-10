@@ -120,12 +120,13 @@
 
 ## Phase 2 – Implementation Candidates
 
-[ ] implement `local-ai-search "QUERY"`
-[ ] implement `local-ai-search "QUERY" --web-only`
-[ ] implement `local-ai-search "QUERY" --ai-only`
-[ ] add subprocess adapter module for `local-ai`
-[ ] add subprocess adapter module for `local-search`
-[ ] design one user-facing config file with `[search]`, `[ai]`, and `[integration]`
-[ ] decide whether to implement `local-ai-search --shell` as a delegate to `local-ai --shell`
+[ ] add subprocess adapter module for local-search
+[ ] add subprocess adapter module for local-ai
+[ ] implement integration.py orchestration layer
+[ ] implement local-ai-search "QUERY"
+[ ] implement local-ai-search "QUERY" --ai-only
+[ ] implement local-ai-search "QUERY" --web-only
+[ ] design one user-facing config file
+[ ] decide --shell delegation
 [ ] draft monorepo migration plan
 [ ] defer runtime data migration plan
