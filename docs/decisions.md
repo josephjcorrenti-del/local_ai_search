@@ -129,3 +129,175 @@ local-ai "when should i move out of my parents house?"
 local-ai-search "how many legs do a cat have?"
 local-ai-search "how many legs do a cat have?" --web-only
 local-ai-search "how many legs do a cat have?" --ai-only
+
+## 2026-06-08 - Config ownership
+
+Configuration should have one user-facing config file with separate ownership sections.
+
+Target shape:
+
+```ini
+[search]
+provider = local_search
+fallback_provider = duckduckgo
+provider_url = http://localhost:8080
+
+[ai]
+chat_model = qwen2.5-coder:3b
+summary_model = phi3:mini
+ollama_base_url = http://127.0.0.1:11434
+
+[integration]
+default_mode = integrated
+evidence_limit = 5
+evidence_max_chars = 4000
+```
+
+Decision:
+
+There should be one user-facing config file, but each domain keeps its own config ownership.
+
+Ownership:
+
+* `[search]` is owned by search behavior
+* `[ai]` is owned by AI behavior
+* `[integration]` is owned by orchestration behavior
+
+The code may continue to use separate `config.py` modules for:
+
+* `local_ai`
+* `local_search`
+* `local_ai_search`
+
+Shared settings must not be duplicated ambiguously.
+
+When commands are run through `local-ai-search`, the resolved top-level configuration should be treated as canonical for integrated behavior.
+
+---
+
+## 2026-06-08 - Shell ownership
+
+Decision:
+
+`local_ai` owns shell implementation.
+
+`local_ai_search` should not implement a second shell.
+
+If `local-ai-search --shell` is implemented, it should be a delegating entry point to:
+
+```bash
+local-ai --shell
+```
+
+Future search-aware shell behavior should extend the existing `local_ai` shell or use an explicit integration mode rather than duplicating shell UX in `local_ai_search`.
+
+---
+
+## 2026-06-08 - Subprocess vs import boundary
+
+Decision:
+
+Keep subprocess as the first-class integration boundary for now.
+
+Direct Python imports are deferred until:
+
+* user-facing behavior is stable
+* config ownership is stable
+* repository ownership is stable
+
+Subprocess calls should be wrapped in adapter/helper functions so the implementation can later switch from subprocess to direct imports without changing CLI behavior.
+
+Subprocess boundaries must respect config ownership.
+
+Shared settings should come from the canonical user-facing configuration and be passed explicitly through adapters wherever possible.
+
+---
+
+## 2026-06-08 - Repository ownership model
+
+Decision:
+
+Move toward a monorepo with separate packages and separate command surfaces.
+
+Target source layout:
+
+```text
+src/
+  local_ai/
+  local_search/
+  local_ai_search/
+```
+
+Commands should remain:
+
+```text
+local-ai
+local-search
+local-ai-search
+```
+
+Do not fully merge packages.
+
+Do not remove the `local-ai` or `local-search` command surfaces.
+
+During initial consolidation:
+
+* keep `paths.py` separate
+* keep `logging.py` separate
+* keep runtime data roots separate
+* keep run logs separate
+
+Desired future runtime layout:
+
+```text
+~/local_ai_search/data/
+  local_ai/
+  local_search/
+  local_ai_search/
+```
+
+Runtime data migration should be:
+
+* explicit
+* tested
+* deferred until after code consolidation
+
+---
+
+## 2026-06-08 - Effort to combine projects
+
+Evaluation:
+
+Combining `local_ai`, `local_search`, and `local_ai_search` into one monorepo is reasonable if packages remain separate.
+
+A full package merge is not recommended at this time.
+
+Estimated effort:
+
+Medium.
+
+Expected work:
+
+* move packages into one repository
+* preserve package names
+* preserve command names
+* merge pyproject entry points
+* merge test commands
+* update CI
+* keep imports stable
+* keep runtime data stable
+
+Primary risks:
+
+* packaging conflicts
+* test path assumptions
+* duplicate dependency declarations
+* console script conflicts
+* CI changes
+* accidental runtime data migration
+
+Decision:
+
+Monorepo consolidation is the preferred long-term repository direction.
+
+Actual migration should be deferred until the first integrated query behavior is implemented and tested.

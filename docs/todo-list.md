@@ -92,28 +92,40 @@
 [x] add tests for ecosystem status/doctor behavior
 [x] add `--help` coverage later
 
-## Other
-[x] populate README
-[ ] local-ai-search --shell should go to local-search --shell (which should use search?)
-[ ] verify duck duck go works in local-search, local-ai, and local-ai-search
-[ ] discuss usage and testing of configs
-[ ] move local ai and local search into local ai search
-
-
-
 ## Tests and CI
 
 [x] add pytest tests
 [x] add `scripts/tests/run_all.sh`
 [x] add GitHub Actions workflow
 [x] verify tests pass locally
-[ ] verify GitHub Actions pass
+[x] verify GitHub Actions pass
 
 ## Git
 
 [x] initialize git repo
 [x] make first commit
-[ ] create GitHub repo
-[ ] push main branch
+[x] create GitHub repo
+[x] push main branch
 [x] verify clean `git status`
 
+## Phase 2 – Integration Strategy
+
+[x] define first integrated query path
+[x] define config ownership
+[x] define shell ownership
+[x] evaluate effort to combine `local_ai`, `local_search`, and `local_ai_search`
+[x] decide subprocess vs import boundary
+[x] decide repository ownership model
+[ ] verify DuckDuckGo role after config strategy
+
+## Phase 2 – Implementation Candidates
+
+[ ] implement `local-ai-search "QUERY"`
+[ ] implement `local-ai-search "QUERY" --web-only`
+[ ] implement `local-ai-search "QUERY" --ai-only`
+[ ] add subprocess adapter module for `local-ai`
+[ ] add subprocess adapter module for `local-search`
+[ ] design one user-facing config file with `[search]`, `[ai]`, and `[integration]`
+[ ] decide whether to implement `local-ai-search --shell` as a delegate to `local-ai --shell`
+[ ] draft monorepo migration plan
+[ ] defer runtime data migration plan
