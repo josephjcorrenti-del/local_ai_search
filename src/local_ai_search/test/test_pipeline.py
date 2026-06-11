@@ -8,9 +8,6 @@ def test_build_prompt_exists():
         pass
 
 
-#from local_ai_search.pipeline import build_prompt
-
-
 def test_build_prompt_contains_query():
     prompt = build_prompt(
         "What is SQLite?",

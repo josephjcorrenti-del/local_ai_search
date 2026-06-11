@@ -1,9 +1,12 @@
 from __future__ import annotations
 
-import json
-import subprocess
 from pathlib import Path
 from typing import Any
+
+from local_ai_search.adapters.local_search import (
+    LocalSearchAdapterError,
+    get_evidence,
+)
 
 SUPPORTED_RETRIEVAL_VERSION = 1
 
@@ -28,32 +31,9 @@ def load_evidence_from_local_search(
     max_chars: int = 4000,
 ) -> dict[str, Any]:
     try:
-        result = subprocess.run(
-            [
-                "local-search",
-                "evidence",
-                str(path),
-                "--limit",
-                str(limit),
-                "--max-chars",
-                str(max_chars),
-            ],
-            check=False,
-            capture_output=True,
-            text=True,
-        )
-    except FileNotFoundError as exc:
-        raise EvidenceError(
-            "local-search command not found; install local_search or activate an environment where local-search is on PATH"
-        ) from exc
-
-    if result.returncode != 0:
-        raise EvidenceError(result.stderr.strip() or "local-search evidence failed")
-
-    try:
-        evidence = json.loads(result.stdout)
-    except json.JSONDecodeError as exc:
-        raise EvidenceError(f"invalid evidence JSON: {exc}") from exc
+        evidence = get_evidence(str(path), limit=limit, max_chars=max_chars)
+    except LocalSearchAdapterError as exc:
+        raise EvidenceError(str(exc)) from exc
 
     validate_evidence(evidence, max_chars=max_chars)
     return evidence
