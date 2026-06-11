@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from local_ai_search.adapters import local_ai
 
 def build_prompt(
     query: str,
@@ -17,3 +18,7 @@ def build_prompt(
         parts.append("")
 
     return "\n".join(parts).rstrip()
+
+def run_query(query: str, evidence: dict) -> str:
+    prompt = build_prompt(query, evidence)
+    return local_ai.ask(prompt)
