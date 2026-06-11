@@ -7,6 +7,9 @@ from pathlib import Path
 DEFAULT_SEARCH_PROVIDER = "local_search"
 SUPPORTED_SEARCH_PROVIDERS = ("local_search", "duckduckgo")
 
+EVIDENCE_LIMIT: int = 5
+EVIDENCE_MAX_CHARS: int = 4000
+
 
 class ConfigError(ValueError):
     pass

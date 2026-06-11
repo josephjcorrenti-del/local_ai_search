@@ -7,6 +7,7 @@ from local_ai_search.adapters.local_search import (
     LocalSearchAdapterError,
     get_evidence,
 )
+from local_ai_search.config import EVIDENCE_LIMIT, EVIDENCE_MAX_CHARS
 
 SUPPORTED_RETRIEVAL_VERSION = 1
 
@@ -27,8 +28,8 @@ def evidence_char_count(evidence: dict[str, Any]) -> int:
 def load_evidence_from_local_search(
     path: Path,
     *,
-    limit: int = 5,
-    max_chars: int = 4000,
+    limit: int = EVIDENCE_LIMIT,
+    max_chars: int = EVIDENCE_MAX_CHARS,
 ) -> dict[str, Any]:
     try:
         evidence = get_evidence(str(path), limit=limit, max_chars=max_chars)
