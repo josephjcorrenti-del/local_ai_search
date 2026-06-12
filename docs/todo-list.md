@@ -123,7 +123,7 @@
 [x] add subprocess adapter module for local-search
 [x] add subprocess adapter module for local-ai
 [x] implement pipeline.py query pipeline
-[ ] implement local-ai-search "QUERY"
+[x] implement local-ai-search "QUERY"
 [ ] implement local-ai-search "QUERY" --ai-only
 [ ] implement local-ai-search "QUERY" --web-only
 [ ] design one user-facing config file

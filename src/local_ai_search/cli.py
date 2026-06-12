@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
-import subprocess
+import sys
 import time
 
 from local_ai_search.adapters import local_ai, local_search
@@ -274,6 +274,16 @@ def _ecosystem_config_show_run() -> int:
     return exit_code
 
 
+def cmd_query(args: argparse.Namespace) -> int:
+    if args.ai_only:
+        answer = local_ai.ask(args.query)
+        print(answer)
+        return 0
+
+    fail_print("integrated query mode is not implemented yet")
+    return 1
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="local-ai-search")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -307,6 +317,10 @@ def build_parser() -> argparse.ArgumentParser:
     inspect_evidence_parser.add_argument("--max-chars", type=int, default=4000)
     inspect_evidence_parser.set_defaults(func=cmd_inspect_evidence)
 
+    parser.add_argument("query", nargs="?")
+    parser.add_argument("--ai-only", action="store_true")
+    parser.add_argument("--web-only", action="store_true")
+
     inspect_evidence_parser.add_argument(
         "--json",
         action="store_true",
@@ -317,6 +331,38 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main() -> int:
+    known_commands = {
+        "status",
+        "doctor",
+        "config-show",
+        "inspect-evidence",
+    }
+
+    argv = sys.argv[1:]
+
+    if not argv:
+        parser = build_parser()
+        parser.print_help()
+        return 0
+
+    first = argv[0]
+
+    if first in {"-h", "--help"}:
+        parser = build_parser()
+        parser.print_help()
+        return 0
+
+    if first not in known_commands:
+        query_parser = argparse.ArgumentParser(add_help=False)
+        query_parser.add_argument("query", nargs="+")
+        query_parser.add_argument("--ai-only", action="store_true")
+        query_parser.add_argument("--web-only", action="store_true")
+
+        query_args = query_parser.parse_args(argv)
+        query_args.query = " ".join(query_args.query)
+
+        return cmd_query(query_args)
+
     parser = build_parser()
     args = parser.parse_args()
     return args.func(args)

@@ -163,22 +163,54 @@ import pytest
 from local_ai_search import cli
 
 
+def test_top_level_help(capsys, monkeypatch):
+    from local_ai_search import cli
+
+    monkeypatch.setattr("sys.argv", ["local-ai-search", "--help"])
+
+    assert cli.main() == 0
+
+    output = capsys.readouterr().out
+    assert "status" in output
+
+
 @pytest.mark.parametrize(
     "argv, expected",
     [
-        (["local-ai-search", "--help"], "status"),
         (["local-ai-search", "status", "--help"], "--self"),
         (["local-ai-search", "doctor", "--help"], "--self"),
         (["local-ai-search", "config-show", "--help"], "config-show"),
         (["local-ai-search", "inspect-evidence", "--help"], "--json"),
     ],
 )
-def test_help_commands(capsys, monkeypatch, argv, expected):
+
+
+def test_subcommand_help(capsys, monkeypatch, argv, expected):
+    from local_ai_search import cli
+
     monkeypatch.setattr("sys.argv", argv)
 
     with pytest.raises(SystemExit) as exc:
         cli.main()
 
     assert exc.value.code == 0
+
     output = capsys.readouterr().out
     assert expected in output
+
+def test_top_level_query_ai_only(monkeypatch, capsys):
+    from local_ai_search import cli
+    from local_ai_search.adapters import local_ai
+
+    calls = []
+
+    def fake_ask(prompt):
+        calls.append(prompt)
+        return "answer text"
+
+    monkeypatch.setattr(local_ai, "ask", fake_ask)
+    monkeypatch.setattr("sys.argv", ["local-ai-search", "what is sqlite?", "--ai-only"])
+
+    assert cli.main() == 0
+    assert calls == ["what is sqlite?"]
+    assert "answer text" in capsys.readouterr().out
