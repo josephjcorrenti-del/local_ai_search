@@ -214,3 +214,20 @@ def test_top_level_query_ai_only(monkeypatch, capsys):
     assert cli.main() == 0
     assert calls == ["what is sqlite?"]
     assert "answer text" in capsys.readouterr().out
+
+
+def test_top_level_query_web_only(monkeypatch):
+    from local_ai_search import cli
+    from local_ai_search.adapters import local_search
+
+    calls = []
+
+    def fake_search(query):
+        calls.append(query)
+        return 0
+
+    monkeypatch.setattr(local_search, "search", fake_search)
+    monkeypatch.setattr("sys.argv", ["local-ai-search", "jumping insects", "--web-only"])
+
+    assert cli.main() == 0
+    assert calls == ["jumping insects"]

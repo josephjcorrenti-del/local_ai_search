@@ -280,6 +280,9 @@ def cmd_query(args: argparse.Namespace) -> int:
         print(answer)
         return 0
 
+    if args.web_only:
+        return local_search.search(args.query)
+
     fail_print("integrated query mode is not implemented yet")
     return 1
 

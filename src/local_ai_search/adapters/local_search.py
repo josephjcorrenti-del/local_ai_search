@@ -52,3 +52,6 @@ def get_evidence(
         return json.loads(result.stdout)
     except json.JSONDecodeError as exc:
         raise LocalSearchAdapterError(f"invalid evidence JSON: {exc}") from exc
+
+def search(query: str) -> int:
+    return run_external_command(["local-search", query])
