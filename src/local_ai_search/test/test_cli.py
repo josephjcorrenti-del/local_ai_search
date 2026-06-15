@@ -231,3 +231,60 @@ def test_top_level_query_web_only(monkeypatch):
 
     assert cli.main() == 0
     assert calls == ["jumping insects"]
+
+
+def test_top_level_query_runs_search_then_ai(monkeypatch, capsys):
+    from local_ai_search import cli
+    from local_ai_search.adapters import local_ai, local_search
+
+    calls = []
+
+    def fake_search(query):
+        calls.append(("search", query))
+        return 0
+
+    def fake_ask(query):
+        calls.append(("ask", query))
+        return "answer text"
+
+    monkeypatch.setattr(local_search, "search", fake_search)
+    monkeypatch.setattr(local_ai, "ask", fake_ask)
+    monkeypatch.setattr("sys.argv", ["local-ai-search", "what is sqlite?"])
+
+    assert cli.main() == 0
+
+    assert calls == [
+        ("search", "what is sqlite?"),
+        ("ask", "what is sqlite?"),
+    ]
+
+    assert "answer text" in capsys.readouterr().out
+
+
+def test_top_level_query_runs_search_then_ai(monkeypatch, capsys):
+    from local_ai_search import cli
+    from local_ai_search.adapters import local_ai, local_search
+
+    calls = []
+
+    def fake_search(query):
+        calls.append(("search", query))
+        return 0
+
+    def fake_ask(query):
+        calls.append(("ask", query))
+        return "answer text"
+
+    monkeypatch.setattr(local_search, "search", fake_search)
+    monkeypatch.setattr(local_ai, "ask", fake_ask)
+    monkeypatch.setattr("sys.argv", ["local-ai-search", "what is sqlite?"])
+
+    assert cli.main() == 0
+
+    assert calls == [
+        ("search", "what is sqlite?"),
+        ("ask", "what is sqlite?"),
+    ]
+
+    assert "answer text" in capsys.readouterr().out
+

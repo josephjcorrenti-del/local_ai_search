@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+import re
 import sys
 import time
 
@@ -283,8 +284,34 @@ def cmd_query(args: argparse.Namespace) -> int:
     if args.web_only:
         return local_search.search(args.query)
 
-    fail_print("integrated query mode is not implemented yet")
-    return 1
+    search_exit_code = local_search.search(args.query)
+    if search_exit_code != 0:
+        return search_exit_code
+
+    print()
+    answer = local_ai.ask(args.query)
+    print(answer)
+    return 0
+
+
+def _query_slug(query: str) -> str:
+    slug = re.sub(r"[^a-zA-Z0-9]+", "_", query.strip().lower())
+    return slug.strip("_")
+
+
+def latest_web_artifact_for_query(query: str) -> Path:
+    artifact_dir = Path.home() / "local_search/data/local_search/artifacts/web"
+    pattern = f"search_{_query_slug(query)}_*.json"
+    matches = sorted(
+        artifact_dir.glob(pattern),
+        key=lambda path: path.stat().st_mtime,
+        reverse=True,
+    )
+
+    if not matches:
+        raise LocalSearchAdapterError(f"no web artifact found for query: {query}")
+
+    return matches[0]
 
 
 def build_parser() -> argparse.ArgumentParser:
