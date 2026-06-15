@@ -247,7 +247,7 @@ During initial consolidation:
 * keep runtime data roots separate
 * keep run logs separate
 
-Desired future runtime layout:
+Runtime data migration should be explicit, tested, and deferred until after code consolidation.
 
 ```text
 ~/local_ai_search/data/
@@ -301,3 +301,22 @@ Decision:
 Monorepo consolidation is the preferred long-term repository direction.
 
 Actual migration should be deferred until the first integrated query behavior is implemented and tested.
+
+## 2026-06-15 - Monorepo runtime layout
+
+Target runtime layout:
+
+```text
+data/
+  local_ai/
+  local_search/
+  local_ai_search/
+
+  logs/
+    local_ai/
+      run.log
+    local_search/
+      run.log
+    local_ai_search/
+      run.log
+```

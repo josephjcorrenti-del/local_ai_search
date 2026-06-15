@@ -116,17 +116,43 @@
 [x] evaluate effort to combine `local_ai`, `local_search`, and `local_ai_search`
 [x] decide subprocess vs import boundary
 [x] decide repository ownership model
-[ ] verify DuckDuckGo role after config strategy
 
 ## Phase 2 – Implementation Candidates
 
 [x] add subprocess adapter module for local-search
 [x] add subprocess adapter module for local-ai
 [x] implement pipeline.py query pipeline
-[ ] implement local-ai-search "QUERY"
+[x] implement local-ai-search "QUERY"
 [x] implement local-ai-search "QUERY" --ai-only
 [x] implement local-ai-search "QUERY" --web-only
-[ ] design one user-facing config file
-[ ] decide --shell delegation
+[x] defer runtime data migration plan
+
+### Phase 2.1 – Monorepo
+
 [ ] draft monorepo migration plan
-[ ] defer runtime data migration plan
+[ ] design one user-facing monorepo config file
+[ ] combine repos into one monorepo
+[ ] preserve package names
+[ ] preserve commands
+[ ] preserve runtime data
+[ ] merge tests/CI
+
+### Phase 2.2 – GUI
+
+[ ] decide GUI stack
+[ ] expose local-ai-search query flow
+[ ] expose ai-only/web-only modes
+[ ] show search results and AI answer
+[ ] keep CLI usable
+
+### Phase 2.3 – Results quality
+
+[ ] make default query mode evidence-aware
+[ ] improve evidence prompt
+[ ] compare local/search/AI output quality
+[ ] add result quality test cases
+[ ] decide DuckDuckGo/fallback role
+
+## TBP / Later
+
+[ ] decide --shell delegation
