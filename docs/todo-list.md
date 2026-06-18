@@ -129,9 +129,13 @@
 
 ### Phase 2.1 – Monorepo
 
-[ ] draft monorepo migration plan
-[ ] design one user-facing monorepo config file
-[ ] combine repos into one monorepo
+[x] draft monorepo migration plan
+[x] design one user-facing monorepo config file
+[x] combine repos into one monorepo
+[x] combine config in monorepo
+[x] move logs to centralized `data/logs/<package>/run.log`
+[x] inventory package metadata and entry points
+[x] draft combined pyproject.toml
 [ ] preserve package names
 [ ] preserve commands
 [ ] preserve runtime data
@@ -156,3 +160,6 @@
 ## TBP / Later
 
 [ ] decide --shell delegation
+[ ] why is local_search not searxng in config
+[ ] clean up tests
+[ ] logs timestamp a day ahead?

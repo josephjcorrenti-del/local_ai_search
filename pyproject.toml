@@ -1,13 +1,33 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "local-ai-search"
 version = "0.1.0"
-description = "Explicit integration boundary between local_ai and local_search"
-requires-python = ">=3.10"
+description = "Local AI and search monorepo"
+requires-python = ">=3.12"
 dependencies = []
 
 [project.scripts]
+local-ai = "local_ai.cli:main"
+ollama-workbench = "local_ai.cli:main"
+local-search = "local_search.cli:main"
 local-ai-search = "local_ai_search.cli:main"
 
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
 [tool.pytest.ini_options]
-testpaths = ["src/local_ai_search/test"]
 pythonpath = ["src"]
+testpaths = [
+  "src/local_ai/test",
+  "src/local_search/test",
+  "src/local_ai_search/test",
+]
+addopts = [
+  "--import-mode=importlib",
+]
