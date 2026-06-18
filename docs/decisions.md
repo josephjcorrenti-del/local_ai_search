@@ -320,3 +320,20 @@ data/
     local_ai_search/
       run.log
 ```
+
+## 2026-06-18 - Test ownership
+
+Tests remain package-local.
+
+src/local_ai/test
+src/local_search/test
+src/local_ai_search/test
+
+Reason:
+
+* preserves package boundaries
+* preserves ownership
+* keeps behavior inspectable
+
+The monorepo uses a shared test runner and shared CI workflow,
+but test organization remains package-specific.

@@ -136,10 +136,13 @@
 [x] move logs to centralized `data/logs/<package>/run.log`
 [x] inventory package metadata and entry points
 [x] draft combined pyproject.toml
-[ ] preserve package names
-[ ] preserve commands
-[ ] preserve runtime data
-[ ] merge tests/CI
+[x] preserve package names
+[x] preserve commands
+[x] preserve runtime data
+[x] consolidate test execution
+[x] consolidate CI workflow
+[x] remove duplicated test helpers
+[x] document package test ownership
 
 ### Phase 2.2 – GUI
 
