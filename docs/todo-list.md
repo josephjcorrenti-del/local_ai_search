@@ -164,5 +164,5 @@
 
 [ ] decide --shell delegation
 [ ] why is local_search not searxng in config
-[ ] clean up tests
+[x] clean up tests
 [ ] logs timestamp a day ahead?
