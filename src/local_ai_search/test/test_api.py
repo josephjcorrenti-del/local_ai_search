@@ -18,14 +18,14 @@ def test_api_query_contract():
 
     response = client.post(
         "/api/v1/query",
-        json={"query": "what is sqlite?", "mode": "ai_only"},
+        json={"query": "what is sqlite?", "mode": "integrated"},
     )
 
     assert response.status_code == 200
 
     data = response.json()
     assert data["ok"] is True
-    assert data["mode"] == "ai_only"
+    assert data["mode"] == "integrated"
     assert data["query"] == "what is sqlite?"
     assert "elapsed_ms" in data
 
