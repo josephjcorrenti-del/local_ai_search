@@ -146,11 +146,11 @@
 
 ### Phase 2.2 – GUI / Local API
 
-[ ] decide local API stack
-[ ] define API contract before frontend
-[ ] expose status endpoint
-[ ] expose config endpoint
-[ ] expose query endpoint
+[x] decide local API stack
+[x] define API contract before frontend
+[x] expose status endpoint
+[x] expose config endpoint
+[x] expose query endpoint
 [ ] expose ai-only mode
 [ ] expose web-only mode
 [ ] add minimal local web UI
