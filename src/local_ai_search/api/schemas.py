@@ -1,0 +1,30 @@
+from __future__ import annotations
+
+from typing import Any, Literal
+
+from pydantic import BaseModel
+
+
+QueryMode = Literal["integrated", "ai_only", "web_only"]
+
+
+class QueryRequest(BaseModel):
+    query: str
+    mode: QueryMode = "integrated"
+    limit: int | None = None
+    max_chars: int | None = None
+
+
+class ApiError(BaseModel):
+    type: str
+    message: str
+
+
+class QueryResponse(BaseModel):
+    ok: bool
+    mode: QueryMode
+    query: str
+    answer: str | None = None
+    evidence: dict[str, Any] | None = None
+    elapsed_ms: int
+    error: ApiError | None = None

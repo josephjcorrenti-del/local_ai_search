@@ -144,13 +144,18 @@
 [x] remove duplicated test helpers
 [x] document package test ownership
 
-### Phase 2.2 – GUI
+### Phase 2.2 – GUI / Local API
 
-[ ] decide GUI stack
-[ ] expose local-ai-search query flow
-[ ] expose ai-only/web-only modes
-[ ] show search results and AI answer
+[ ] decide local API stack
+[ ] define API contract before frontend
+[ ] expose status endpoint
+[ ] expose config endpoint
+[ ] expose query endpoint
+[ ] expose ai-only mode
+[ ] expose web-only mode
+[ ] add minimal local web UI
 [ ] keep CLI usable
+[ ] document GUI/API boundary
 
 ### Phase 2.3 – Results quality
 

@@ -288,3 +288,17 @@ def test_top_level_query_runs_search_then_ai(monkeypatch, capsys):
 
     assert "answer text" in capsys.readouterr().out
 
+
+def test_serve_command(monkeypatch):
+    from local_ai_search import cli
+
+    calls = []
+
+    def fake_run(app, *, host, port):
+        calls.append((host, port))
+
+    monkeypatch.setattr("uvicorn.run", fake_run)
+    monkeypatch.setattr("sys.argv", ["local-ai-search", "serve"])
+
+    assert cli.main() == 0
+    assert calls == [("127.0.0.1", 8765)]

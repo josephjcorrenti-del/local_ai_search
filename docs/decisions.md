@@ -337,3 +337,47 @@ Reason:
 
 The monorepo uses a shared test runner and shared CI workflow,
 but test organization remains package-specific.
+
+## 2026-06-18 - Phase 2.2 GUI/API direction
+
+The first GUI should use a solid local API middle layer.
+
+The frontend should be intentionally simple and replaceable.
+
+`local_ai_search` should expose existing Python behavior through a local-only API,
+then place a minimal web UI on top of that API.
+
+Reason:
+
+* keeps CLI first-class
+* avoids frontend lock-in
+* makes future desktop/web/mobile UI possible
+* preserves inspectable backend behavior
+
+## 2026-06-19 - API contract
+
+The local API is the middle layer between frontend clients and existing Python behavior.
+
+The API is versioned under `/api/v1`.
+
+The API must bind to localhost by default.
+
+The frontend is replaceable and should only depend on the API contract.
+
+The CLI remains first-class and must not depend on the GUI.
+
+Query modes are explicit:
+
+- integrated
+- ai_only
+- web_only
+
+Responses use a stable JSON envelope:
+
+- ok
+- mode
+- query
+- answer
+- evidence
+- elapsed_ms
+- error

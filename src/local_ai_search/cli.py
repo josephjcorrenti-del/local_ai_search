@@ -21,6 +21,13 @@ from local_ai_search.output import fail_print, info_print, pass_print
 from local_ai_search.paths import ensure_runtime_dirs
 
 
+def serve_command(args):
+    import uvicorn
+    from local_ai_search.api.app import create_app
+
+    uvicorn.run(create_app(), host="127.0.0.1", port=8765)
+    return 0
+
 def cmd_status(args: argparse.Namespace) -> int:
     started_at = time.perf_counter()
     log_event("status.start", command="status", event_outcome="start")
@@ -318,6 +325,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="local-ai-search")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
+    serve_parser = subparsers.add_parser("serve")
+    serve_parser.set_defaults(func=serve_command)
+
     status_parser = subparsers.add_parser("status")
     status_parser.set_defaults(func=cmd_status)
 
@@ -362,6 +372,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main() -> int:
     known_commands = {
+        "serve",
         "status",
         "doctor",
         "config-show",
