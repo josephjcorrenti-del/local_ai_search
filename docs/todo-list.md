@@ -151,7 +151,7 @@
 [x] expose status endpoint
 [x] expose config endpoint
 [x] expose query endpoint
-[ ] expose ai-only mode
+[x] expose ai-only mode
 [ ] expose web-only mode
 [ ] add minimal local web UI
 [ ] keep CLI usable

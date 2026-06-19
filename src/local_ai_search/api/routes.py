@@ -4,6 +4,7 @@ import time
 
 from fastapi import APIRouter
 
+from local_ai_search.adapters import local_ai
 from local_ai_search.api.schemas import QueryRequest, QueryResponse
 
 router = APIRouter()
@@ -35,11 +36,17 @@ def config() -> dict:
 def query(request: QueryRequest) -> QueryResponse:
     started = time.perf_counter()
 
+    answer = None
+    evidence = None
+
+    if request.mode == "ai_only":
+        answer = local_ai.ask(request.query)
+
     return QueryResponse(
         ok=True,
         mode=request.mode,
         query=request.query,
-        answer=None,
-        evidence=None,
+        answer=answer,
+        evidence=evidence,
         elapsed_ms=int((time.perf_counter() - started) * 1000),
     )
