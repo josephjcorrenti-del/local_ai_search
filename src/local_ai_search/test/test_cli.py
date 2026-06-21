@@ -301,4 +301,4 @@ def test_serve_command(monkeypatch):
     monkeypatch.setattr("sys.argv", ["local-ai-search", "serve"])
 
     assert cli.main() == 0
-    assert calls == [("127.0.0.1", 8765)]
+    assert calls == [("0.0.0.0", 8765)]
