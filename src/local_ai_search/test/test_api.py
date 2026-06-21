@@ -124,3 +124,13 @@ def test_api_query_web_only_returns_evidence(monkeypatch):
         ("latest", "jumping insects"),
         ("load", "/tmp/search_jumping_insects.json", 3, 500),
     ]
+
+
+def test_api_index_page():
+    client = TestClient(create_app())
+
+    response = client.get("/api/v1/")
+
+    assert response.status_code == 200
+    assert "local_ai_search" in response.text
+    assert "/api/v1/query" in response.text

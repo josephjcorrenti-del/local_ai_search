@@ -153,8 +153,15 @@
 [x] expose query endpoint
 [x] expose ai-only mode
 [x] expose web-only mode
+[x] open from browser
+[x] ai_only works
+[x] web_only works
+[ ] integrated works
+[ ] render responses as conversation
+[ ] remove results
+[ ] make raw response optional
 [ ] add minimal local web UI
-[ ] keep CLI usable
+[ ] test CLI usability
 [ ] document GUI/API boundary
 
 ### Phase 2.3 – Results quality

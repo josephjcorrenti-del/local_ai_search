@@ -10,7 +10,6 @@ import time
 from local_ai_search.adapters import local_ai, local_search
 from local_ai_search.adapters.subprocesses import run_external_command
 from local_ai_search.adapters.local_search import LocalSearchAdapterError
-from local_ai_search.artifacts import latest_web_artifact_for_query
 from local_ai_search.config import ConfigError, SUPPORTED_SEARCH_PROVIDERS, load_config
 from local_ai_search.evidence import (
     EvidenceError,
@@ -27,7 +26,7 @@ def serve_command(args):
     import uvicorn
     from local_ai_search.api.app import create_app
 
-    uvicorn.run(create_app(), host="127.0.0.1", port=8765)
+    uvicorn.run(create_app(), host="0.0.0.0", port=8765)
     return 0
 
 def cmd_status(args: argparse.Namespace) -> int:
