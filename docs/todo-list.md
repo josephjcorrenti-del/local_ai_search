@@ -152,7 +152,7 @@
 [x] expose config endpoint
 [x] expose query endpoint
 [x] expose ai-only mode
-[ ] expose web-only mode
+[x] expose web-only mode
 [ ] add minimal local web UI
 [ ] keep CLI usable
 [ ] document GUI/API boundary
