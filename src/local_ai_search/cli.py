@@ -9,6 +9,8 @@ import time
 
 from local_ai_search.adapters import local_ai, local_search
 from local_ai_search.adapters.subprocesses import run_external_command
+from local_ai_search.adapters.local_search import LocalSearchAdapterError
+from local_ai_search.artifacts import latest_web_artifact_for_query
 from local_ai_search.config import ConfigError, SUPPORTED_SEARCH_PROVIDERS, load_config
 from local_ai_search.evidence import (
     EvidenceError,

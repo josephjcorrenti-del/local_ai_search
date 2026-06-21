@@ -171,3 +171,4 @@
 [ ] why is local_search not searxng in config
 [x] clean up tests
 [ ] logs timestamp a day ahead?
+[ ] decide whether local_ai, local_search, and local_ai_search should expose package APIs for GUI/API use

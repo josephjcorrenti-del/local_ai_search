@@ -57,3 +57,70 @@ def test_api_query_ai_only_calls_local_ai(monkeypatch):
     assert data["answer"] == "sqlite answer"
     assert data["evidence"] is None
     assert calls == ["what is sqlite?"]
+
+def test_api_query_web_only_returns_evidence(monkeypatch):
+    from pathlib import Path
+    from local_ai_search.api import routes
+
+    calls = []
+
+    evidence = {
+        "retrieval_version": 1,
+        "artifact_type": "web_search_results",
+        "provider": "local_search",
+        "query": "jumping insects",
+        "fetched_at": "2026-06-19T00:00:00+00:00",
+        "results": [
+            {
+                "rank": 1,
+                "title": "Jumping insect result",
+                "url": "https://example.com",
+                "snippet": "A useful snippet.",
+            }
+        ],
+    }
+
+    def fake_search(query):
+        calls.append(("search", query))
+        return 0
+
+    def fake_latest(query):
+        calls.append(("latest", query))
+        return Path("/tmp/search_jumping_insects.json")
+
+
+    def fake_load(path, *, limit, max_chars):
+        calls.append(("load", str(path), limit, max_chars))
+        return evidence
+
+    monkeypatch.setattr(routes.local_search, "search", fake_search)
+    monkeypatch.setattr(routes, "latest_web_artifact_for_query", fake_latest)
+    monkeypatch.setattr(routes, "load_evidence_from_local_search", fake_load)
+
+    client = TestClient(create_app())
+
+    response = client.post(
+        "/api/v1/query",
+        json={
+            "query": "jumping insects",
+            "mode": "web_only",
+            "limit": 3,
+            "max_chars": 500,
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data["ok"] is True
+    assert data["mode"] == "web_only"
+    assert data["query"] == "jumping insects"
+    assert data["answer"] is None
+    assert data["evidence"]["provider"] == "local_search"
+    assert data["evidence"]["results"][0]["title"] == "Jumping insect result"
+
+    assert calls == [
+        ("search", "jumping insects"),
+        ("latest", "jumping insects"),
+        ("load", "/tmp/search_jumping_insects.json", 3, 500),
+    ]
