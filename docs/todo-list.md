@@ -157,12 +157,12 @@
 [x] ai_only works
 [x] web_only works
 [x] access FE on local network
-[ ] integrated works
+[x] integrated works
 [ ] render responses as conversation
 [ ] remove results
 [ ] make raw response optional
 [ ] add minimal local web UI
-[ ] test CLI usability
+[x] test CLI usability
 [ ] document GUI/API boundary
 
 ### Phase 2.3 – Results quality

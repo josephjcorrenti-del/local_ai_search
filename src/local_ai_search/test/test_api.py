@@ -18,7 +18,7 @@ def test_api_query_contract():
 
     response = client.post(
         "/api/v1/query",
-        json={"query": "what is sqlite?", "mode": "integrated"},
+        json={"query": "what is sqlite?", "mode": "ai_only"},
     )
 
     assert response.status_code == 200
@@ -192,3 +192,24 @@ def test_api_query_integrated_returns_answer_and_evidence(monkeypatch):
     assert data["mode"] == "integrated"
     assert data["answer"] == "SQLite answer"
     assert data["evidence"] == evidence
+
+
+def test_api_query_contract(monkeypatch):
+    from local_ai_search.api import routes
+
+    monkeypatch.setattr(routes.local_ai, "ask", lambda prompt: "test answer")
+
+    client = TestClient(create_app())
+
+    response = client.post(
+        "/api/v1/query",
+        json={"query": "what is sqlite?", "mode": "ai_only"},
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data["ok"] is True
+    assert data["mode"] == "ai_only"
+    assert data["query"] == "what is sqlite?"
+    assert "elapsed_ms" in data
