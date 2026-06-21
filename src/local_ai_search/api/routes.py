@@ -5,6 +5,7 @@ import time
 from fastapi import APIRouter
 from fastapi.responses import HTMLResponse
 
+from local_ai_search import pipeline
 from local_ai_search.adapters import local_ai, local_search
 from local_ai_search.api.schemas import QueryRequest, QueryResponse
 from local_ai_search.artifacts import latest_web_artifact_for_query
@@ -46,7 +47,7 @@ def query(request: QueryRequest) -> QueryResponse:
     if request.mode == "ai_only":
         answer = local_ai.ask(request.query)
 
-    elif request.mode == "web_only":
+    elif request.mode in ("web_only", "integrated"):
         local_search.search(request.query)
 
         config = load_config()
@@ -57,6 +58,12 @@ def query(request: QueryRequest) -> QueryResponse:
             limit=request.limit or config.integration.evidence_limit,
             max_chars=request.max_chars or config.integration.evidence_max_chars,
         )
+
+        if request.mode == "integrated":
+            answer = pipeline.run_query(
+                request.query,
+                evidence,
+            )
 
     return QueryResponse(
         ok=True,

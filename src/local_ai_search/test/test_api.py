@@ -134,3 +134,61 @@ def test_api_index_page():
     assert response.status_code == 200
     assert "local_ai_search" in response.text
     assert "/api/v1/query" in response.text
+
+
+def test_api_query_integrated_returns_answer_and_evidence(monkeypatch):
+    from pathlib import Path
+    from local_ai_search.api import routes
+
+    evidence = {
+        "provider": "local_search",
+        "results": [
+            {
+                "rank": 1,
+                "title": "SQLite",
+                "url": "https://example.com",
+                "snippet": "SQLite is a database.",
+            }
+        ],
+    }
+
+    monkeypatch.setattr(
+        routes.local_search,
+        "search",
+        lambda query: 0,
+    )
+
+    monkeypatch.setattr(
+        routes,
+        "latest_web_artifact_for_query",
+        lambda query: Path("/tmp/test.json"),
+    )
+
+    monkeypatch.setattr(
+        routes,
+        "load_evidence_from_local_search",
+        lambda path, *, limit, max_chars: evidence,
+    )
+
+    monkeypatch.setattr(
+        routes.pipeline,
+        "run_query",
+        lambda query, evidence: "SQLite answer",
+    )
+
+    client = TestClient(create_app())
+
+    response = client.post(
+        "/api/v1/query",
+        json={
+            "query": "what is sqlite?",
+            "mode": "integrated",
+        },
+    )
+
+    data = response.json()
+
+    assert data["ok"] is True
+    assert data["mode"] == "integrated"
+    assert data["answer"] == "SQLite answer"
+    assert data["evidence"] == evidence

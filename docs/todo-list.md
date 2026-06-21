@@ -156,6 +156,7 @@
 [x] open from browser
 [x] ai_only works
 [x] web_only works
+[x] access FE on local network
 [ ] integrated works
 [ ] render responses as conversation
 [ ] remove results
@@ -171,6 +172,7 @@
 [ ] compare local/search/AI output quality
 [ ] add result quality test cases
 [ ] decide DuckDuckGo/fallback role
+[ ] use r/o filesystem for evidence
 
 ## TBP / Later
 
@@ -179,3 +181,4 @@
 [x] clean up tests
 [ ] logs timestamp a day ahead?
 [ ] decide whether local_ai, local_search, and local_ai_search should expose package APIs for GUI/API use
+[ ] create docker container
