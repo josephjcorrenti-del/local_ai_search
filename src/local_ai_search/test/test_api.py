@@ -213,3 +213,21 @@ def test_api_query_contract(monkeypatch):
     assert data["mode"] == "ai_only"
     assert data["query"] == "what is sqlite?"
     assert "elapsed_ms" in data
+
+
+def test_search_route_exists():
+    client = TestClient(create_app())
+
+    response = client.get("/search/")
+
+    assert response.status_code == 200
+    assert "local_ai_search" in response.text
+
+
+def test_search_route_exists():
+    client = TestClient(create_app())
+
+    response = client.get("/search/")
+
+    assert response.status_code == 200
+    assert "local_ai_search" in response.text

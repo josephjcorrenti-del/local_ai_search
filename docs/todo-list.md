@@ -158,11 +158,14 @@
 [x] web_only works
 [x] access FE on local network
 [x] integrated works
-[ ] render responses as conversation
-[ ] remove results
-[ ] make raw response optional
-[ ] add minimal local web UI
 [x] test CLI usability
+[x] create minimal TypeScript frontend
+[x] render web_only as search
+[ ] render ai_only/integrated as conversation
+[x] make raw response optional
+[x] remove old inline HTML
+[x] remove results
+[x] add minimal styling
 [ ] document GUI/API boundary
 
 ### Phase 2.3 – Results quality
@@ -173,6 +176,21 @@
 [ ] add result quality test cases
 [ ] decide DuckDuckGo/fallback role
 [ ] use r/o filesystem for evidence
+
+### Phase 2.4 geek tabs
+[ ] adjustable config
+[ ] logs
+[ ] status
+[ ] doctor
+[ ] evidence/artifacts
+[ ] ollama serve output
+[ ] web gui serve output
+[ ] toggle on and off in settings
+
+### Phase 2.5 Easy start update
+[ ] start tools
+[ ] upgrade tools
+[ ] see status of tools
 
 ## TBP / Later
 
