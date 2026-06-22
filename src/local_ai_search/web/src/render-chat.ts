@@ -1,46 +1,75 @@
 import type { QueryResponse } from "./types";
 
-export function renderChat(response: QueryResponse): string {
-  const sources = response.evidence?.results ?? [];
+export type ChatTurn = {
+  query: string;
+  response: QueryResponse;
+};
+
+export function renderChat(turns: ChatTurn[]): string {
+  if (turns.length === 0) {
+    return "";
+  }
 
   return `
     <section class="chat">
+      ${turns.map((turn) => renderTurn(turn)).join("")}
+    </section>
+  `;
+}
+
+function renderTurn(turn: ChatTurn): string {
+  const sources = turn.response.evidence?.results ?? [];
+
+  return `
+    <section class="chat-turn">
       <article class="message user-message">
-        <div class="message-label">You</div>
-        <p>${escapeHtml(response.query)}</p>
+        <div class="avatar">●</div>
+        <div>
+          <div class="message-label">You</div>
+          <p>${escapeHtml(turn.query)}</p>
+        </div>
       </article>
 
       <article class="message assistant-message">
-        <div class="message-label">local_ai_search</div>
-        <div class="answer">${formatAnswer(response.answer || "No answer returned.")}</div>
+        <div class="avatar bot">◎</div>
+        <div class="message-body">
+          <div class="message-label assistant-label">Local AI Search</div>
+          <div class="answer">${formatAnswer(turn.response.answer || "No answer returned.")}</div>
+
+          ${
+            sources.length > 0
+              ? `
+                <details class="sources" open>
+                  <summary>Sources</summary>
+                  <ol>
+                    ${sources
+                      .map(
+                        (source) => `
+                          <li>
+                            <a href="${escapeAttr(source.url)}" target="_blank" rel="noopener noreferrer">
+                              ${escapeHtml(source.title || "Untitled")}
+                            </a>
+                            ${
+                              source.snippet
+                                ? `<p>${escapeHtml(source.snippet)}</p>`
+                                : ""
+                            }
+                          </li>
+                        `,
+                      )
+                      .join("")}
+                  </ol>
+                </details>
+              `
+              : ""
+          }
+
+          <details class="debug">
+            <summary>Raw response</summary>
+            <pre>${escapeHtml(JSON.stringify(turn.response, null, 2))}</pre>
+          </details>
+        </div>
       </article>
-
-      ${
-        sources.length > 0
-          ? `
-            <details class="sources" open>
-              <summary>Sources</summary>
-              ${sources
-                .map(
-                  (source) => `
-                    <article class="source">
-                      <a href="${escapeAttr(source.url)}" target="_blank" rel="noopener noreferrer">
-                        ${escapeHtml(source.title || "Untitled")}
-                      </a>
-                      <p>${escapeHtml(source.snippet || "")}</p>
-                    </article>
-                  `,
-                )
-                .join("")}
-            </details>
-          `
-          : ""
-      }
-
-      <details class="debug">
-        <summary>Raw response</summary>
-        <pre>${escapeHtml(JSON.stringify(response, null, 2))}</pre>
-      </details>
     </section>
   `;
 }

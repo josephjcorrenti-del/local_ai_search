@@ -161,7 +161,7 @@
 [x] test CLI usability
 [x] create minimal TypeScript frontend
 [x] render web_only as search
-[ ] render ai_only/integrated as conversation
+[x] render ai_only/integrated as conversation
 [x] make raw response optional
 [x] remove old inline HTML
 [x] remove results
