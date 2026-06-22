@@ -4,3 +4,7 @@ __pycache__/
 *.pyc
 data/
 *.egg-info/
+
+# frontend dependencies/build cache
+src/local_ai_search/web/node_modules/
+src/local_ai_search/web/.vite/
