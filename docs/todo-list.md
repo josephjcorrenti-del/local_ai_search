@@ -166,7 +166,7 @@
 [x] remove old inline HTML
 [x] remove results
 [x] add minimal styling
-[ ] document GUI/API boundary
+[x] document GUI/API boundary
 
 ### Phase 2.3 – Results quality
 

@@ -381,3 +381,20 @@ Responses use a stable JSON envelope:
 - evidence
 - elapsed_ms
 - error
+
+## 2026-06-22 - GUI/API boundary
+
+Decision:
+
+The GUI is a consumer of the local API.
+
+The API is the stable integration boundary.
+
+The frontend owns presentation only and must not perform retrieval, evidence generation, or prompt construction.
+
+Reason:
+
+* keeps CLI first-class
+* avoids frontend lock-in
+* preserves inspectable behavior
+* enables future clients
