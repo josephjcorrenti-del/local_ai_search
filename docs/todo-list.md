@@ -176,6 +176,7 @@
 [ ] add result quality test cases
 [ ] decide DuckDuckGo/fallback role
 [ ] use r/o filesystem for evidence
+[ ] ai should be able to use projects
 
 ### Phase 2.4 geek tabs
 [ ] adjustable config
