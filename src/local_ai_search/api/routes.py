@@ -70,6 +70,7 @@ def query(request: QueryRequest) -> QueryResponse:
             answer = pipeline.run_query(
                 request.query,
                 evidence,
+                session_name=request.session,
             )
 
     return QueryResponse(

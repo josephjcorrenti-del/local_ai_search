@@ -11,6 +11,9 @@ QueryMode = Literal["integrated", "ai_only", "web_only"]
 class QueryRequest(BaseModel):
     query: str
     mode: QueryMode = "integrated"
+
+    session: str | None = None
+
     limit: int | None = None
     max_chars: int | None = None
 

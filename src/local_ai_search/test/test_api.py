@@ -205,7 +205,7 @@ def test_api_query_integrated_returns_answer_and_evidence(monkeypatch, tmp_path)
     monkeypatch.setattr(
         routes.pipeline,
         "run_query",
-        lambda query, evidence: "SQLite answer",
+        lambda *args, **kwargs: "SQLite answer",
     )
 
     client = TestClient(create_app())

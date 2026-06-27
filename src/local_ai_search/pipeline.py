@@ -62,7 +62,11 @@ def build_prompt(
 
     return "\n".join(parts).rstrip()
 
-def run_query(query: str, evidence: dict) -> str:
+def run_query(
+    query: str,
+    evidence: dict,
+    session_name: str | None = None,
+) -> str:
     prompt = build_prompt(query, evidence)
     return local_ai.ask(prompt)
 
