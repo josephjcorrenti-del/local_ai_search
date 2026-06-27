@@ -15,7 +15,14 @@ export function renderSearch(response: QueryResponse): string {
 
   return `
     <section class="search-results">
-      <p class="result-count">${results.length} results · ${response.elapsed_ms} ms</p>
+      <p class="result-count">
+        ${
+          accounting
+            ? `Found: ${accounting.available_count} · Used: ${accounting.evidence_count} · Shown: ${accounting.displayed_count}`
+            : `${results.length} results`
+        }
+        · ${response.elapsed_ms} ms
+      </p>
       ${results
         .map(
           (result) => `

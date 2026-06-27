@@ -58,7 +58,7 @@ def test_api_query_ai_only_calls_local_ai(monkeypatch):
     assert data["evidence"] is None
     assert calls == ["what is sqlite?"]
 
-def test_api_query_web_only_returns_evidence(monkeypatch):
+def test_api_query_web_only_returns_evidence(monkeypatch, tmp_path):
     from pathlib import Path
     from local_ai_search.api import routes
 
@@ -84,10 +84,23 @@ def test_api_query_web_only_returns_evidence(monkeypatch):
         calls.append(("search", query))
         return 0
 
+    artifact_path = tmp_path / "search_jumping_insects.json"
+    artifact_path.write_text(
+        """
+        {
+          "results": [
+            {"title": "one"},
+            {"title": "two"},
+            {"title": "three"}
+          ]
+        }
+        """,
+        encoding="utf-8",
+    )
+
     def fake_latest(query):
         calls.append(("latest", query))
-        return Path("/tmp/search_jumping_insects.json")
-
+        return artifact_path
 
     def fake_load(path, *, limit, max_chars):
         calls.append(("load", str(path), limit, max_chars))
@@ -119,10 +132,16 @@ def test_api_query_web_only_returns_evidence(monkeypatch):
     assert data["evidence"]["provider"] == "local_search"
     assert data["evidence"]["results"][0]["title"] == "Jumping insect result"
 
+    assert data["accounting"] == {
+        "available_count": 3,
+        "evidence_count": 1,
+        "displayed_count": 1,
+    }
+
     assert calls == [
         ("search", "jumping insects"),
         ("latest", "jumping insects"),
-        ("load", "/tmp/search_jumping_insects.json", 3, 500),
+        ("load", str(artifact_path), 3, 500),
     ]
 
 
@@ -136,7 +155,7 @@ def test_api_index_page():
     assert "/api/v1/query" in response.text
 
 
-def test_api_query_integrated_returns_answer_and_evidence(monkeypatch):
+def test_api_query_integrated_returns_answer_and_evidence(monkeypatch, tmp_path):
     from pathlib import Path
     from local_ai_search.api import routes
 
@@ -158,10 +177,23 @@ def test_api_query_integrated_returns_answer_and_evidence(monkeypatch):
         lambda query: 0,
     )
 
+    artifact_path = tmp_path / "test.json"
+    artifact_path.write_text(
+        """
+        {
+          "results": [
+            {"title": "one"},
+            {"title": "two"}
+          ]
+        }
+        """,
+        encoding="utf-8",
+    )
+
     monkeypatch.setattr(
         routes,
         "latest_web_artifact_for_query",
-        lambda query: Path("/tmp/test.json"),
+        lambda query: artifact_path
     )
 
     monkeypatch.setattr(
@@ -192,6 +224,12 @@ def test_api_query_integrated_returns_answer_and_evidence(monkeypatch):
     assert data["mode"] == "integrated"
     assert data["answer"] == "SQLite answer"
     assert data["evidence"] == evidence
+
+    assert data["accounting"] == {
+        "available_count": 2,
+        "evidence_count": 1,
+        "displayed_count": 1,
+    }
 
 
 def test_api_query_contract(monkeypatch):

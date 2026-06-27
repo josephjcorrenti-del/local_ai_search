@@ -17,6 +17,20 @@ def test_build_prompt_contains_query():
     assert "Question: What is SQLite?" in prompt
 
 
+def test_build_prompt_contains_evidence_aware_instructions():
+    prompt = build_prompt(
+        "What is SQLite?",
+        {"results": []},
+    )
+
+    assert "accurately, concisely, and conversationally" in prompt
+    assert "Use it as your primary source of factual information" in prompt
+    assert "If the evidence conflicts, explain the disagreement." in prompt
+    assert "The application presents provenance separately." in prompt
+    assert "Do not mention snippet numbers." in prompt
+    assert "Do not attribute common programming constructs to individual sources." in prompt
+
+
 def test_build_prompt_contains_evidence():
     prompt = build_prompt(
         "What is SQLite?",

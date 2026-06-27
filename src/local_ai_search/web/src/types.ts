@@ -13,12 +13,20 @@ export type Evidence = {
   results?: EvidenceResult[];
 };
 
+export type EvidenceAccounting = {
+  available_count: number;
+  evidence_count: number;
+  displayed_count: number;
+};
+
 export type QueryResponse = {
   ok: boolean;
   mode: QueryMode;
   query: string;
   answer: string | null;
   evidence: Evidence | null;
+  accounting: EvidenceAccounting | null;
   elapsed_ms: number;
   error: { type: string; message: string } | null;
 };
+

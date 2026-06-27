@@ -170,13 +170,26 @@
 
 ### Phase 2.3 – Results quality
 
+[ ] add answer quality rubric
+[x] improve evidence prompt
+[x] unify CLI and API integrated pipeline
+[x] define evidence source types
+[x] expose retrieved/used/displayed counts
+[ ] display more search results
+[ ] add intent gate before retrieval
 [ ] make default query mode evidence-aware
-[ ] improve evidence prompt
-[ ] compare local/search/AI output quality
+[ ] support uncertainty/competing-evidence language
 [ ] add result quality test cases
-[ ] decide DuckDuckGo/fallback role
 [ ] use r/o filesystem for evidence
-[ ] ai should be able to use projects
+[ ] compare local/search/AI output quality
+[x] inspect local_ai workspace contract
+[ ] support workspace evidence source
+[ ] support session evidence source
+[ ] support explicit filesystem evidence roots
+[ ] render deterministic evidence summary after answer
+[ ] keep full search/debug evidence available behind verbose/raw/details
+[ ] support inline evidence references like [1]
+[ ] render evidence references as clickable source links
 
 ### Phase 2.4 geek tabs
 [ ] adjustable config
@@ -193,6 +206,16 @@
 [ ] upgrade tools
 [ ] see status of tools
 
+### Other enhancements
+[ ] make code copyable
+[ ] add a viewable history
+[ ] delete history
+[ ] decide DuckDuckGo/fallback role
+[ ] add intent gate before retrieval
+[ ] change http://192.168.1.60:8765/search/ to something that can be remembered
+[ ] test_api.py has duplicate test_api_query_contract names
+[ ] test_pipeline.py appears to have nested tests under test_run_query_uses_build_prompt
+
 ## TBP / Later
 
 [ ] decide --shell delegation
@@ -201,3 +224,4 @@
 [ ] logs timestamp a day ahead?
 [ ] decide whether local_ai, local_search, and local_ai_search should expose package APIs for GUI/API use
 [ ] create docker container
+[ ] make sure ELK still works correctly

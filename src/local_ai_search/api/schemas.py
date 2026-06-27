@@ -26,5 +26,6 @@ class QueryResponse(BaseModel):
     query: str
     answer: str | None = None
     evidence: dict[str, Any] | None = None
+    accounting: dict[str, Any] | None = None
     elapsed_ms: int
     error: ApiError | None = None

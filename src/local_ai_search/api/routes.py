@@ -11,6 +11,7 @@ from local_ai_search.api.schemas import QueryRequest, QueryResponse
 from local_ai_search.artifacts import latest_web_artifact_for_query
 from local_ai_search.config import load_config
 from local_ai_search.evidence import load_evidence_from_local_search
+from local_ai_search.evidence_accounting import evidence_counts_for_web_artifact
 
 router = APIRouter()
 
@@ -43,6 +44,7 @@ def query(request: QueryRequest) -> QueryResponse:
 
     answer = None
     evidence = None
+    accounting = None
 
     if request.mode == "ai_only":
         answer = local_ai.ask(request.query)
@@ -59,6 +61,11 @@ def query(request: QueryRequest) -> QueryResponse:
             max_chars=request.max_chars or config.integration.evidence_max_chars,
         )
 
+        accounting = evidence_counts_for_web_artifact(
+            artifact_path,
+            evidence,
+        ).as_dict()
+
         if request.mode == "integrated":
             answer = pipeline.run_query(
                 request.query,
@@ -71,6 +78,7 @@ def query(request: QueryRequest) -> QueryResponse:
         query=request.query,
         answer=answer,
         evidence=evidence,
+        accounting=accounting,
         elapsed_ms=int((time.perf_counter() - started) * 1000),
     )
 

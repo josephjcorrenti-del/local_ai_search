@@ -7,9 +7,11 @@ import re
 import sys
 import time
 
+from local_ai_search import pipeline
 from local_ai_search.adapters import local_ai, local_search
 from local_ai_search.adapters.subprocesses import run_external_command
 from local_ai_search.adapters.local_search import LocalSearchAdapterError
+from local_ai_search.artifacts import latest_web_artifact_for_query
 from local_ai_search.config import ConfigError, SUPPORTED_SEARCH_PROVIDERS, load_config
 from local_ai_search.evidence import (
     EvidenceError,
@@ -296,30 +298,19 @@ def cmd_query(args: argparse.Namespace) -> int:
     if search_exit_code != 0:
         return search_exit_code
 
-    print()
-    answer = local_ai.ask(args.query)
-    print(answer)
-    return 0
+    config = load_config()
+    artifact_path = latest_web_artifact_for_query(args.query)
 
-
-def _query_slug(query: str) -> str:
-    slug = re.sub(r"[^a-zA-Z0-9]+", "_", query.strip().lower())
-    return slug.strip("_")
-
-
-def latest_web_artifact_for_query(query: str) -> Path:
-    artifact_dir = Path.home() / "local_search/data/local_search/artifacts/web"
-    pattern = f"search_{_query_slug(query)}_*.json"
-    matches = sorted(
-        artifact_dir.glob(pattern),
-        key=lambda path: path.stat().st_mtime,
-        reverse=True,
+    evidence = load_evidence_from_local_search(
+        artifact_path,
+        limit=config.integration.evidence_limit,
+        max_chars=config.integration.evidence_max_chars,
     )
 
-    if not matches:
-        raise LocalSearchAdapterError(f"no web artifact found for query: {query}")
-
-    return matches[0]
+    print()
+    answer = pipeline.run_query(args.query, evidence)
+    print(answer)
+    return 0
 
 
 def build_parser() -> argparse.ArgumentParser:

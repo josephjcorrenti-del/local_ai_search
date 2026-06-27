@@ -19,6 +19,7 @@ export function renderChat(turns: ChatTurn[]): string {
 
 function renderTurn(turn: ChatTurn): string {
   const sources = turn.response.evidence?.results ?? [];
+  const accounting = turn.response.accounting;
 
   return `
     <section class="chat-turn">
@@ -35,7 +36,6 @@ function renderTurn(turn: ChatTurn): string {
         <div class="message-body">
           <div class="message-label assistant-label">Local AI Search</div>
           <div class="answer">${formatAnswer(turn.response.answer || "No answer returned.")}</div>
-
           ${
             sources.length > 0
               ? `
@@ -63,7 +63,23 @@ function renderTurn(turn: ChatTurn): string {
               `
               : ""
           }
-
+          ${
+            accounting
+              ? `
+                <details class="sources evidence-details" open>
+                  <summary>Evidence</summary>
+                  <section class="evidence-summary">
+                    <strong>Web</strong>
+                    <p>
+                      Found: ${accounting.available_count}
+                      &nbsp; Used: ${accounting.evidence_count}
+                      &nbsp; Shown: ${accounting.displayed_count}
+                    </p>
+                  </section>
+                </details>
+              `
+              : ""
+          }
           <details class="debug">
             <summary>Raw response</summary>
             <pre>${escapeHtml(JSON.stringify(turn.response, null, 2))}</pre>
