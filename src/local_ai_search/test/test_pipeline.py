@@ -87,8 +87,8 @@ def test_run_query_uses_build_prompt(monkeypatch):
 
     calls = []
 
-    def fake_build_prompt(query, evidence):
-        calls.append(("build_prompt", query, evidence))
+    def fake_build_prompt(query, evidence, session_name=None):
+        calls.append(("build_prompt", query, evidence, session_name))
         return "built prompt"
 
     def fake_ask(prompt: str) -> str:
@@ -103,7 +103,7 @@ def test_run_query_uses_build_prompt(monkeypatch):
     assert pipeline.run_query("question text", evidence) == "answer text"
 
     assert calls == [
-        ("build_prompt", "question text", evidence),
+        ("build_prompt", "question text", evidence, None),
         ("ask", "built prompt"),
     ]
 

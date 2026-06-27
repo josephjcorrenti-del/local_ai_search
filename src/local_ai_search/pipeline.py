@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any
 
 
+from local_ai.memory import session_turns_get
 from local_ai_search.adapters import local_ai
 from local_ai_search.config import EVIDENCE_LIMIT, EVIDENCE_MAX_CHARS
 from local_ai_search.evidence import load_evidence_from_local_search
@@ -11,7 +12,9 @@ from local_ai_search.evidence import load_evidence_from_local_search
 def build_prompt(
     query: str,
     evidence: dict[str, Any],
+    session_name: str | None = None,
 ) -> str:
+    conversation = session_turns_get(session_name)
     parts = [
         "You are a helpful AI assistant.",
         "",
@@ -60,14 +63,29 @@ def build_prompt(
         parts.append(result["snippet"])
         parts.append("")
 
+    if conversation:
+        parts.append("Conversation history:")
+        parts.append("")
+
+        for turn in conversation:
+            parts.append(f"{turn['role'].title()}: {turn['content']}")
+            parts.append("")
+
+    parts.append(f"Current question: {query}")
+
     return "\n".join(parts).rstrip()
+
 
 def run_query(
     query: str,
     evidence: dict,
     session_name: str | None = None,
 ) -> str:
-    prompt = build_prompt(query, evidence)
+    prompt = build_prompt(
+        query,
+        evidence,
+        session_name=session_name,
+    )
     return local_ai.ask(prompt)
 
 
