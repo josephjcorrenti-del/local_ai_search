@@ -170,16 +170,17 @@
 
 ### Phase 2.3 – Results quality
 
-[ ] add answer quality rubric
+[x] add answer quality rubric
 [x] improve evidence prompt
 [x] unify CLI and API integrated pipeline
 [x] define evidence source types
 [x] expose retrieved/used/displayed counts
 [ ] display more search results
-[ ] add intent gate before retrieval
+[ ] add local_ai session support to query API
+[ ] add deterministic intent gate before retrieval
 [ ] make default query mode evidence-aware
 [ ] support uncertainty/competing-evidence language
-[ ] add result quality test cases
+[ ] add deterministic integrated pipeline quality tests
 [ ] use r/o filesystem for evidence
 [ ] compare local/search/AI output quality
 [x] inspect local_ai workspace contract
@@ -187,9 +188,9 @@
 [ ] support session evidence source
 [ ] support explicit filesystem evidence roots
 [ ] render deterministic evidence summary after answer
-[ ] keep full search/debug evidence available behind verbose/raw/details
+[x] keep full search/debug evidence available behind verbose/raw/details
 [ ] support inline evidence references like [1]
-[ ] render evidence references as clickable source links
+[x] render evidence references as clickable source links
 
 ### Phase 2.4 geek tabs
 [ ] adjustable config
@@ -224,4 +225,4 @@
 [ ] logs timestamp a day ahead?
 [ ] decide whether local_ai, local_search, and local_ai_search should expose package APIs for GUI/API use
 [ ] create docker container
-[ ] make sure ELK still works correctly
+[ ] make sure ELK still works correctly.
