@@ -3,14 +3,12 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
-import re
 import sys
 import time
 
 from local_ai_search import pipeline
 from local_ai_search.adapters import local_ai, local_search
 from local_ai_search.adapters.subprocesses import run_external_command
-from local_ai_search.adapters.local_search import LocalSearchAdapterError
 from local_ai_search.artifacts import latest_web_artifact_for_query
 from local_ai_search.config import ConfigError, SUPPORTED_SEARCH_PROVIDERS, load_config
 from local_ai_search.evidence import (
@@ -319,12 +317,16 @@ def cmd_query(args: argparse.Namespace) -> int:
 
     evidence = load_evidence_from_local_search(
         artifact_path,
-        limit=config.integration.evidence_limit,
-        max_chars=config.integration.evidence_max_chars,
+        limit=args.limit or config.integration.evidence_limit,
+        max_chars=args.max_chars or config.integration.evidence_max_chars,
     )
 
     print()
-    answer = pipeline.run_query(args.query, evidence)
+    answer = pipeline.run_query(
+        args.query,
+        evidence,
+        session_name=args.session,
+    )
     print(answer)
     return 0
 
@@ -382,6 +384,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("query", nargs="?")
     parser.add_argument("--ai-only", action="store_true")
     parser.add_argument("--web-only", action="store_true")
+    parser.add_argument("--session", default=None)
+    parser.add_argument("--limit", type=int, default=None)
+    parser.add_argument("--max-chars", type=int, default=None)
 
     inspect_evidence_parser.add_argument(
         "--json",
@@ -422,6 +427,9 @@ def main() -> int:
         query_parser.add_argument("query", nargs="+")
         query_parser.add_argument("--ai-only", action="store_true")
         query_parser.add_argument("--web-only", action="store_true")
+        query_parser.add_argument("--session", default=None)
+        query_parser.add_argument("--limit", type=int, default=None)
+        query_parser.add_argument("--max-chars", type=int, default=None)
 
         query_args = query_parser.parse_args(argv)
         query_args.query = " ".join(query_args.query)

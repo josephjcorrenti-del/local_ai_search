@@ -262,8 +262,10 @@ def test_top_level_query_runs_search_then_pipeline(monkeypatch, capsys):
         calls.append(("load", str(path), limit, max_chars))
         return evidence
 
-    def fake_run_query(query, loaded_evidence):
-        calls.append(("run_query", query, loaded_evidence))
+    def fake_run_query(query, loaded_evidence, session_name=None):
+        calls.append(
+            ("run_query", query, loaded_evidence, session_name)
+        )
         return "answer text"
 
     monkeypatch.setattr(local_search, "search", fake_search)
@@ -278,7 +280,7 @@ def test_top_level_query_runs_search_then_pipeline(monkeypatch, capsys):
         ("search", "what is sqlite?"),
         ("latest", "what is sqlite?"),
         ("load", "/tmp/search_what_is_sqlite.json", 5, 4000),
-        ("run_query", "what is sqlite?", evidence),
+        ("run_query", "what is sqlite?", evidence, None),
     ]
 
     assert "answer text" in capsys.readouterr().out
