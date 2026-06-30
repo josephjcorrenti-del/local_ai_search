@@ -163,3 +163,42 @@ def test_run_query_uses_build_prompt(monkeypatch):
             ("load_evidence", Path("artifact.json"), 5, 4000),
             ("run_query", "question text", {"results": []}),
         ]
+
+
+def test_run_query_appends_to_named_session(monkeypatch):
+    from local_ai_search import pipeline
+
+    calls = []
+
+    monkeypatch.setattr(
+        pipeline,
+        "build_prompt",
+        lambda query, evidence, session_name=None: "built prompt",
+    )
+
+    monkeypatch.setattr(
+        pipeline.local_ai,
+        "ask",
+        lambda prompt: "answer text",
+    )
+
+    def fake_session_append(role, content, session_name=None):
+        calls.append((role, content, session_name))
+
+    monkeypatch.setattr(pipeline, "session_append", fake_session_append)
+
+    evidence = {"results": []}
+
+    assert (
+        pipeline.run_query(
+            "question text",
+            evidence,
+            session_name="api-test-session",
+        )
+        == "answer text"
+    )
+
+    assert calls == [
+        ("user", "question text", "api-test-session"),
+        ("assistant", "answer text", "api-test-session"),
+    ]
