@@ -398,3 +398,26 @@ Reason:
 * avoids frontend lock-in
 * preserves inspectable behavior
 * enables future clients
+* 
+## 2026-06-29 - Session ownership
+
+`local_ai` owns session storage.
+
+`local_ai_search` does not implement a separate session system. It reuses the existing `local_ai` session APIs and storage so the same conversation can continue across CLI, shell, API, and web UI.
+
+Both `local_ai` and `local_ai_search` can have complete conversations using the same session.
+
+The difference is capability: `local_ai_search` can augment a session-backed conversation with retrieved evidence or web search when needed, while `local_ai` answers from the model/session context alone.
+
+## 2026-06-30 Resource selection rule
+
+If a flag points to an existing resource, `local_ai_search` should reuse the owning system rather than duplicate storage or parsing.
+
+Examples:
+
+- `--session` selects an existing `local_ai` session.
+- `--workspace` selects an existing `local_ai` workspace.
+
+However, existing resources are not automatically sufficient evidence.
+
+When an answer depends on facts that may have changed, `local_ai_search` should consider the age and relevance of local evidence before relying on it. Older local evidence may be useful as context, but the pipeline should be able to seek newer or more relevant evidence when freshness matters.

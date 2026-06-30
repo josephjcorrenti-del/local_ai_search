@@ -285,6 +285,22 @@ def _ecosystem_config_show_run() -> int:
     return exit_code
 
 
+def cmd_local_ai(args: argparse.Namespace) -> int:
+    if not args.args:
+        fail_print("missing local-ai command")
+        return 2
+
+    return _external_command_run(["local-ai", *args.args])
+
+
+def cmd_local_search(args: argparse.Namespace) -> int:
+    if not args.args:
+        fail_print("missing local-search command")
+        return 2
+
+    return _external_command_run(["local-search", *args.args])
+
+
 def cmd_query(args: argparse.Namespace) -> int:
     if args.ai_only:
         answer = local_ai.ask(args.query)
@@ -349,6 +365,20 @@ def build_parser() -> argparse.ArgumentParser:
     inspect_evidence_parser.add_argument("--max-chars", type=int, default=4000)
     inspect_evidence_parser.set_defaults(func=cmd_inspect_evidence)
 
+    local_ai_parser = subparsers.add_parser(
+        "local-ai",
+        help="Pass through to local-ai",
+    )
+    local_ai_parser.add_argument("args", nargs=argparse.REMAINDER)
+    local_ai_parser.set_defaults(func=cmd_local_ai)
+
+    local_search_parser = subparsers.add_parser(
+        "local-search",
+        help="Pass through to local-search",
+    )
+    local_search_parser.add_argument("args", nargs=argparse.REMAINDER)
+    local_search_parser.set_defaults(func=cmd_local_search)
+
     parser.add_argument("query", nargs="?")
     parser.add_argument("--ai-only", action="store_true")
     parser.add_argument("--web-only", action="store_true")
@@ -369,6 +399,8 @@ def main() -> int:
         "doctor",
         "config-show",
         "inspect-evidence",
+        "local-ai",
+        "local-search",
     }
 
     argv = sys.argv[1:]
