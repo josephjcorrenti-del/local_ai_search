@@ -299,3 +299,44 @@ def test_serve_command(monkeypatch):
 
     assert cli.main() == 0
     assert calls == [("0.0.0.0", 8765)]
+
+
+def test_top_level_session_followup_skips_retrieval(monkeypatch, capsys):
+    from local_ai_search import cli
+    from local_ai_search.adapters import local_search
+
+    calls = []
+
+    def fake_search(query):
+        calls.append(("search", query))
+        return 0
+
+    def fake_run_query(query, evidence, session_name=None):
+        calls.append(("run_query", query, evidence, session_name))
+        return "SQLite"
+
+    monkeypatch.setattr(local_search, "search", fake_search)
+    monkeypatch.setattr(cli.pipeline, "run_query", fake_run_query)
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "local-ai-search",
+            "--session",
+            "api-test",
+            "what database did I just tell you I liked?",
+        ],
+    )
+
+    assert cli.main() == 0
+
+    assert calls == [
+        (
+            "run_query",
+            "what database did I just tell you I liked?",
+            {"results": []},
+            "api-test",
+        )
+    ]
+
+    captured = capsys.readouterr()
+    assert "SQLite" in captured.out

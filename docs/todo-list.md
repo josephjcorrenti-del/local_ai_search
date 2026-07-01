@@ -175,22 +175,44 @@
 [x] unify CLI and API integrated pipeline
 [x] define evidence source types
 [x] expose retrieved/used/displayed counts
-[ ] display more search results
-[ ] add local_ai session support to query API
-[ ] add deterministic intent gate before retrieval
+[x] inspect local_ai workspace contract
+
+#### Session and intent foundation
+
+[x] support local_ai sessions in integrated queries
+[x] add deterministic intent gate before retrieval
+[ ] support session evidence source
+[ ] classify insufficient conversational context
+
+#### Workspace and filesystem evidence
+
+[ ] support workspace evidence source
+[ ] support explicit filesystem evidence roots
+[ ] use r/o filesystem for evidence
+
+#### Answer quality behavior
+
 [ ] make default query mode evidence-aware
 [ ] support uncertainty/competing-evidence language
-[ ] add deterministic integrated pipeline quality tests
-[ ] use r/o filesystem for evidence
-[ ] compare local/search/AI output quality
-[x] inspect local_ai workspace contract
-[ ] support workspace evidence source
-[ ] support session evidence source
-[ ] support explicit filesystem evidence roots
-[ ] render deterministic evidence summary after answer
-[x] keep full search/debug evidence available behind verbose/raw/details
 [ ] support inline evidence references like [1]
 [x] render evidence references as clickable source links
+[ ] render deterministic evidence summary after answer
+
+#### Quality validation
+
+[ ] add deterministic integrated pipeline quality tests
+[ ] compare local/search/AI output quality
+
+### Phase 2.3.1 – Results quality in GUI
+
+[ ] expose session selection/input in GUI
+[ ] apply intent gate behavior to GUI queries
+[ ] display when retrieval was skipped
+[ ] display insufficient conversational context clearly
+[ ] expose workspace selection/input in GUI
+[ ] display workspace/session evidence in evidence summary
+[ ] display more search results
+[x] keep full search/debug evidence available behind verbose/raw/details
 
 ### Phase 2.4 geek tabs
 [ ] adjustable config
@@ -226,3 +248,5 @@
 [ ] decide whether local_ai, local_search, and local_ai_search should expose package APIs for GUI/API use
 [ ] create docker container
 [ ] make sure ELK still works correctly.
+[ ] create/use chat summary for performance
+[ ] ai is using old data directory

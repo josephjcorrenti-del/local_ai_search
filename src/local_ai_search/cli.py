@@ -17,6 +17,7 @@ from local_ai_search.evidence import (
     format_evidence_preview,
     load_evidence_from_local_search,
 )
+from local_ai_search.intent_gate import decide_intent
 from local_ai_search.logging import elapsed_ms_get, log_event
 from local_ai_search.output import fail_print, info_print, pass_print
 from local_ai_search.paths import ensure_runtime_dirs
@@ -70,8 +71,6 @@ def cmd_status(args: argparse.Namespace) -> int:
             elapsed_ms=elapsed_ms_get(started_at),
         )
         raise
-
-
 
 
 def _check_writable_dir(path) -> bool:
@@ -308,18 +307,27 @@ def cmd_query(args: argparse.Namespace) -> int:
     if args.web_only:
         return local_search.search(args.query)
 
-    search_exit_code = local_search.search(args.query)
-    if search_exit_code != 0:
-        return search_exit_code
-
-    config = load_config()
-    artifact_path = latest_web_artifact_for_query(args.query)
-
-    evidence = load_evidence_from_local_search(
-        artifact_path,
-        limit=args.limit or config.integration.evidence_limit,
-        max_chars=args.max_chars or config.integration.evidence_max_chars,
+    decision = decide_intent(
+        args.query,
+        mode="integrated",
+        session_name=args.session,
     )
+
+    if decision.needs_retrieval:
+        search_exit_code = local_search.search(args.query)
+        if search_exit_code != 0:
+            return search_exit_code
+
+        config = load_config()
+        artifact_path = latest_web_artifact_for_query(args.query)
+
+        evidence = load_evidence_from_local_search(
+            artifact_path,
+            limit=args.limit or config.integration.evidence_limit,
+            max_chars=args.max_chars or config.integration.evidence_max_chars,
+        )
+    else:
+        evidence = {"results": []}
 
     print()
     answer = pipeline.run_query(
