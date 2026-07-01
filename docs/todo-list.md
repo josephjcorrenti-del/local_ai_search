@@ -182,7 +182,7 @@
 [x] support local_ai sessions in integrated queries
 [x] add deterministic intent gate before retrieval
 [ ] support session evidence source
-[ ] classify insufficient conversational context
+[x] classify insufficient conversational context
 
 #### Workspace and filesystem evidence
 

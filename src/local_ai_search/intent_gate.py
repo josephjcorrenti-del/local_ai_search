@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Literal
+
+from local_ai.memory import session_load, session_turns_get
 
 
 @dataclass(frozen=True)
@@ -38,6 +41,34 @@ _CURRENT_PATTERNS = (
 )
 
 
+IntentRoute = Literal[
+    "model_only",
+    "retrieve",
+    "insufficient_context",
+]
+
+
+@dataclass(frozen=True)
+class IntentDecision:
+    route: IntentRoute
+    reason: str
+
+    @property
+    def needs_retrieval(self) -> bool:
+        return self.route == "retrieve"
+
+
+def session_context_available(session_name: str | None) -> bool:
+    if not session_name:
+        return False
+
+    if session_turns_get(session_name):
+        return True
+
+    session = session_load(session_name)
+    return bool(session.get("summary"))
+
+
 def decide_intent(
     query: str,
     *,
@@ -47,15 +78,24 @@ def decide_intent(
     normalized = " ".join(query.lower().split())
 
     if mode == "web_only":
-        return IntentDecision(True, "web_only mode requires retrieval")
+        return IntentDecision("retrieve", "web_only mode requires retrieval")
 
     if mode == "ai_only":
-        return IntentDecision(False, "ai_only mode skips retrieval")
+        return IntentDecision("model_only", "ai_only mode skips retrieval")
 
     if any(pattern in normalized for pattern in _CURRENT_PATTERNS):
-        return IntentDecision(True, "query appears freshness-sensitive")
+        return IntentDecision("retrieve", "query appears freshness-sensitive")
 
-    if session_name and any(pattern in normalized for pattern in _SESSION_CONTEXT_PATTERNS):
-        return IntentDecision(False, "query appears answerable from session context")
+    if any(pattern in normalized for pattern in _SESSION_CONTEXT_PATTERNS):
+        if session_context_available(session_name):
+            return IntentDecision(
+                "model_only",
+                "query appears answerable from session context",
+            )
 
-    return IntentDecision(True, "default integrated mode retrieves evidence")
+        return IntentDecision(
+            "insufficient_context",
+            "query refers to conversation context but no usable session context is available",
+        )
+
+    return IntentDecision("retrieve", "default integrated mode retrieves evidence")

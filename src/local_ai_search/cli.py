@@ -313,6 +313,13 @@ def cmd_query(args: argparse.Namespace) -> int:
         session_name=args.session,
     )
 
+    if decision.route == "insufficient_context":
+        print(
+            "I don't have enough conversation context to answer that. "
+            "Use --session with the relevant session, or restate the context."
+        )
+        return 0
+
     if decision.needs_retrieval:
         search_exit_code = local_search.search(args.query)
         if search_exit_code != 0:

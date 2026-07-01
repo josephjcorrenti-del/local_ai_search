@@ -340,3 +340,31 @@ def test_top_level_session_followup_skips_retrieval(monkeypatch, capsys):
 
     captured = capsys.readouterr()
     assert "SQLite" in captured.out
+
+
+def test_top_level_conversation_followup_without_context_returns_message(monkeypatch, capsys):
+    from local_ai_search import cli
+    from local_ai_search.adapters import local_search
+
+    calls = []
+
+    monkeypatch.setattr(
+        local_search,
+        "search",
+        lambda query: calls.append(("search", query)) or 0,
+    )
+    monkeypatch.setattr(
+        cli.pipeline,
+        "run_query",
+        lambda query, evidence, session_name=None: calls.append(("run_query", query)) or "answer",
+    )
+    monkeypatch.setattr(
+        "sys.argv",
+        ["local-ai-search", "what database did I just tell you I liked?"],
+    )
+
+    assert cli.main() == 0
+    assert calls == []
+
+    captured = capsys.readouterr()
+    assert "don't have enough conversation context" in captured.out
