@@ -327,6 +327,38 @@ def test_top_level_session_followup_skips_retrieval(monkeypatch, capsys):
         ],
     )
 
+    monkeypatch.setattr(
+        cli,
+        "build_session_evidence",
+        lambda session_name: {
+            "retrieval_version": 1,
+            "artifact_type": "session_context",
+            "provider": "local_ai",
+            "query": None,
+            "session": session_name,
+            "results": [
+                {
+                    "rank": 1,
+                    "title": "Session user",
+                    "url": "",
+                    "snippet": "My favorite database is SQLite.",
+                    "source_type": "session",
+                }
+            ],
+        },
+    )
+
+    from local_ai_search.intent_gate import IntentDecision
+
+    monkeypatch.setattr(
+        cli,
+        "decide_intent",
+        lambda query, mode, session_name=None: IntentDecision(
+            route="model_only",
+            reason="test session context",
+        ),
+    )
+
     assert cli.main() == 0
 
     assert len(calls) == 1
