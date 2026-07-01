@@ -329,14 +329,15 @@ def test_top_level_session_followup_skips_retrieval(monkeypatch, capsys):
 
     assert cli.main() == 0
 
-    assert calls == [
-        (
-            "run_query",
-            "what database did I just tell you I liked?",
-            {"results": []},
-            "api-test",
-        )
-    ]
+    assert len(calls) == 1
+
+    call_name, query, evidence, session_name = calls[0]
+
+    assert call_name == "run_query"
+    assert query == "what database did I just tell you I liked?"
+    assert session_name == "api-test"
+    assert evidence["artifact_type"] == "session_context"
+    assert evidence["provider"] == "local_ai"
 
     captured = capsys.readouterr()
     assert "SQLite" in captured.out

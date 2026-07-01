@@ -21,6 +21,7 @@ from local_ai_search.intent_gate import decide_intent
 from local_ai_search.logging import elapsed_ms_get, log_event
 from local_ai_search.output import fail_print, info_print, pass_print
 from local_ai_search.paths import ensure_runtime_dirs
+from local_ai_search.session_evidence import build_session_evidence
 
 
 def serve_command(args):
@@ -334,7 +335,7 @@ def cmd_query(args: argparse.Namespace) -> int:
             max_chars=args.max_chars or config.integration.evidence_max_chars,
         )
     else:
-        evidence = {"results": []}
+        evidence = build_session_evidence(args.session)
 
     print()
     answer = pipeline.run_query(

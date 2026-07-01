@@ -181,7 +181,7 @@
 
 [x] support local_ai sessions in integrated queries
 [x] add deterministic intent gate before retrieval
-[ ] support session evidence source
+[x] support session evidence source
 [x] classify insufficient conversational context
 
 #### Workspace and filesystem evidence
@@ -250,3 +250,5 @@
 [ ] make sure ELK still works correctly.
 [ ] create/use chat summary for performance
 [ ] ai is using old data directory
+[ ] make default query mode evidence-aware
+[ ] verify local ai search uses default session
