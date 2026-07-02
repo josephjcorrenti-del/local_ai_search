@@ -200,7 +200,7 @@
 
 #### Quality validation
 
-[ ] add deterministic integrated pipeline quality tests
+[ ] add deterministic integrated prompt_builder quality tests
 [ ] compare local/search/AI output quality
 
 ### Phase 2.3.1 – Results quality in GUI
@@ -237,7 +237,7 @@
 [ ] add intent gate before retrieval
 [ ] change http://192.168.1.60:8765/search/ to something that can be remembered
 [ ] test_api.py has duplicate test_api_query_contract names
-[ ] test_pipeline.py appears to have nested tests under test_run_query_uses_build_prompt
+[ ] test_prompt_builder.py appears to have nested tests under test_run_query_uses_build_prompt
 
 ## TBP / Later
 

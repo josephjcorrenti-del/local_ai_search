@@ -1,4 +1,4 @@
-from local_ai_search.pipeline import build_prompt
+from local_ai_search.prompt_builder import build_prompt
 
 
 def test_build_prompt_exists():
@@ -52,7 +52,7 @@ def test_build_prompt_contains_evidence():
 
 
 def test_run_query_calls_local_ai(monkeypatch):
-    from local_ai_search import pipeline
+    from local_ai_search import prompt_builder
 
     calls = []
 
@@ -60,9 +60,9 @@ def test_run_query_calls_local_ai(monkeypatch):
         calls.append(prompt)
         return "answer text"
 
-    monkeypatch.setattr(pipeline.local_ai, "ask", fake_ask)
+    monkeypatch.setattr(prompt_builder.local_ai, "ask", fake_ask)
 
-    answer = pipeline.run_query(
+    answer = prompt_builder.run_query(
         "What is SQLite?",
         {
             "results": [
@@ -83,7 +83,7 @@ def test_run_query_calls_local_ai(monkeypatch):
 
 
 def test_run_query_uses_build_prompt(monkeypatch):
-    from local_ai_search import pipeline
+    from local_ai_search import prompt_builder
 
     calls = []
 
@@ -95,12 +95,12 @@ def test_run_query_uses_build_prompt(monkeypatch):
         calls.append(("ask", prompt))
         return "answer text"
 
-    monkeypatch.setattr(pipeline, "build_prompt", fake_build_prompt)
-    monkeypatch.setattr(pipeline.local_ai, "ask", fake_ask)
+    monkeypatch.setattr(prompt_builder, "build_prompt", fake_build_prompt)
+    monkeypatch.setattr(prompt_builder.local_ai, "ask", fake_ask)
 
     evidence = {"results": []}
 
-    assert pipeline.run_query("question text", evidence) == "answer text"
+    assert prompt_builder.run_query("question text", evidence) == "answer text"
 
     assert calls == [
         ("build_prompt", "question text", evidence, None),
@@ -109,7 +109,7 @@ def test_run_query_uses_build_prompt(monkeypatch):
 
     def test_run_query_from_evidence_path_loads_evidence(monkeypatch):
         from pathlib import Path
-        from local_ai_search import pipeline
+        from local_ai_search import prompt_builder
 
         calls = []
         evidence = {"results": []}
@@ -122,11 +122,11 @@ def test_run_query_uses_build_prompt(monkeypatch):
             calls.append(("run_query", query, loaded_evidence))
             return "answer text"
 
-        monkeypatch.setattr(pipeline, "load_evidence_from_local_search", fake_load_evidence)
-        monkeypatch.setattr(pipeline, "run_query", fake_run_query)
+        monkeypatch.setattr(prompt_builder, "load_evidence_from_local_search", fake_load_evidence)
+        monkeypatch.setattr(prompt_builder, "run_query", fake_run_query)
 
         assert (
-                pipeline.run_query_from_evidence_path(
+                prompt_builder.run_query_from_evidence_path(
                     "question text",
                     "artifact.json",
                     limit=3,
@@ -142,7 +142,7 @@ def test_run_query_uses_build_prompt(monkeypatch):
 
     def test_run_query_from_evidence_path_uses_defaults(monkeypatch):
         from pathlib import Path
-        from local_ai_search import pipeline
+        from local_ai_search import prompt_builder
 
         calls = []
 
@@ -154,10 +154,10 @@ def test_run_query_uses_build_prompt(monkeypatch):
             calls.append(("run_query", query, evidence))
             return "answer text"
 
-        monkeypatch.setattr(pipeline, "load_evidence_from_local_search", fake_load_evidence)
-        monkeypatch.setattr(pipeline, "run_query", fake_run_query)
+        monkeypatch.setattr(prompt_builder, "load_evidence_from_local_search", fake_load_evidence)
+        monkeypatch.setattr(prompt_builder, "run_query", fake_run_query)
 
-        assert pipeline.run_query_from_evidence_path("question text", "artifact.json") == "answer text"
+        assert prompt_builder.run_query_from_evidence_path("question text", "artifact.json") == "answer text"
 
         assert calls == [
             ("load_evidence", Path("artifact.json"), 5, 4000),
@@ -166,18 +166,18 @@ def test_run_query_uses_build_prompt(monkeypatch):
 
 
 def test_run_query_appends_to_named_session(monkeypatch):
-    from local_ai_search import pipeline
+    from local_ai_search import prompt_builder
 
     calls = []
 
     monkeypatch.setattr(
-        pipeline,
+        prompt_builder,
         "build_prompt",
         lambda query, evidence, session_name=None: "built prompt",
     )
 
     monkeypatch.setattr(
-        pipeline.local_ai,
+        prompt_builder.local_ai,
         "ask",
         lambda prompt: "answer text",
     )
@@ -185,12 +185,12 @@ def test_run_query_appends_to_named_session(monkeypatch):
     def fake_session_append(role, content, session_name=None):
         calls.append((role, content, session_name))
 
-    monkeypatch.setattr(pipeline, "session_append", fake_session_append)
+    monkeypatch.setattr(prompt_builder, "session_append", fake_session_append)
 
     evidence = {"results": []}
 
     assert (
-        pipeline.run_query(
+        prompt_builder.run_query(
             "question text",
             evidence,
             session_name="api-test-session",

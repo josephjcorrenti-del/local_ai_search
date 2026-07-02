@@ -6,7 +6,7 @@ from pathlib import Path
 import sys
 import time
 
-from local_ai_search import pipeline
+from local_ai_search import prompt_builder
 from local_ai_search.adapters import local_ai, local_search
 from local_ai_search.adapters.subprocesses import run_external_command
 from local_ai_search.artifacts import latest_web_artifact_for_query
@@ -338,7 +338,7 @@ def cmd_query(args: argparse.Namespace) -> int:
         evidence = build_session_evidence(args.session)
 
     print()
-    answer = pipeline.run_query(
+    answer = prompt_builder.run_query(
         args.query,
         evidence,
         session_name=args.session,

@@ -420,4 +420,4 @@ Examples:
 
 However, existing resources are not automatically sufficient evidence.
 
-When an answer depends on facts that may have changed, `local_ai_search` should consider the age and relevance of local evidence before relying on it. Older local evidence may be useful as context, but the pipeline should be able to seek newer or more relevant evidence when freshness matters.
+When an answer depends on facts that may have changed, `local_ai_search` should consider the age and relevance of local evidence before relying on it. Older local evidence may be useful as context, but the prompt_builder should be able to seek newer or more relevant evidence when freshness matters.

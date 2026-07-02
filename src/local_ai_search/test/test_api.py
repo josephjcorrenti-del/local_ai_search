@@ -203,7 +203,7 @@ def test_api_query_integrated_returns_answer_and_evidence(monkeypatch, tmp_path)
     )
 
     monkeypatch.setattr(
-        routes.pipeline,
+        routes.prompt_builder,
         "run_query",
         lambda *args, **kwargs: "SQLite answer",
     )

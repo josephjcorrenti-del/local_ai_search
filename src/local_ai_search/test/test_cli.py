@@ -233,7 +233,7 @@ def test_top_level_query_web_only(monkeypatch):
     assert calls == ["jumping insects"]
 
 
-def test_top_level_query_runs_search_then_pipeline(monkeypatch, capsys):
+def test_top_level_query_runs_search_then_prompt_builder(monkeypatch, capsys):
     from pathlib import Path
 
     from local_ai_search import cli
@@ -271,7 +271,7 @@ def test_top_level_query_runs_search_then_pipeline(monkeypatch, capsys):
     monkeypatch.setattr(local_search, "search", fake_search)
     monkeypatch.setattr(cli, "latest_web_artifact_for_query", fake_latest)
     monkeypatch.setattr(cli, "load_evidence_from_local_search", fake_load)
-    monkeypatch.setattr(cli.pipeline, "run_query", fake_run_query)
+    monkeypatch.setattr(cli.prompt_builder, "run_query", fake_run_query)
     monkeypatch.setattr("sys.argv", ["local-ai-search", "what is sqlite?"])
 
     assert cli.main() == 0
@@ -316,7 +316,7 @@ def test_top_level_session_followup_skips_retrieval(monkeypatch, capsys):
         return "SQLite"
 
     monkeypatch.setattr(local_search, "search", fake_search)
-    monkeypatch.setattr(cli.pipeline, "run_query", fake_run_query)
+    monkeypatch.setattr(cli.prompt_builder, "run_query", fake_run_query)
     monkeypatch.setattr(
         "sys.argv",
         [
@@ -387,7 +387,7 @@ def test_top_level_conversation_followup_without_context_returns_message(monkeyp
         lambda query: calls.append(("search", query)) or 0,
     )
     monkeypatch.setattr(
-        cli.pipeline,
+        cli.prompt_builder,
         "run_query",
         lambda query, evidence, session_name=None: calls.append(("run_query", query)) or "answer",
     )

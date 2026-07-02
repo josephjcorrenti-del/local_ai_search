@@ -5,7 +5,7 @@ import time
 from fastapi import APIRouter
 from fastapi.responses import HTMLResponse
 
-from local_ai_search import pipeline
+from local_ai_search import prompt_builder
 from local_ai_search.adapters import local_ai, local_search
 from local_ai_search.api.schemas import QueryRequest, QueryResponse
 from local_ai_search.artifacts import latest_web_artifact_for_query
@@ -67,7 +67,7 @@ def query(request: QueryRequest) -> QueryResponse:
         ).as_dict()
 
         if request.mode == "integrated":
-            answer = pipeline.run_query(
+            answer = prompt_builder.run_query(
                 request.query,
                 evidence,
                 session_name=request.session,
