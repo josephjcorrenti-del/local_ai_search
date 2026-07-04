@@ -252,3 +252,4 @@
 [ ] ai is using old data directory
 [ ] make default query mode evidence-aware
 [ ] verify local ai search uses default session
+[ ] verify local ai acts like local ai search 

@@ -16,6 +16,7 @@ from local_ai_search.evidence import (
     evidence_char_count,
     format_evidence_preview,
     load_evidence_from_local_search,
+    resolve_evidence,
 )
 from local_ai_search.intent_gate import decide_intent
 from local_ai_search.logging import elapsed_ms_get, log_event
@@ -321,21 +322,16 @@ def cmd_query(args: argparse.Namespace) -> int:
         )
         return 0
 
-    if decision.needs_retrieval:
-        search_exit_code = local_search.search(args.query)
-        if search_exit_code != 0:
-            return search_exit_code
+    evidence = resolve_evidence(
+        args.query,
+        decision=decision,
+        session_name=args.session,
+        limit=args.limit,
+        max_chars=args.max_chars,
+    )
 
-        config = load_config()
-        artifact_path = latest_web_artifact_for_query(args.query)
-
-        evidence = load_evidence_from_local_search(
-            artifact_path,
-            limit=args.limit or config.integration.evidence_limit,
-            max_chars=args.max_chars or config.integration.evidence_max_chars,
-        )
-    else:
-        evidence = build_session_evidence(args.session)
+    if evidence is None:
+        return 1
 
     print()
     answer = prompt_builder.run_query(

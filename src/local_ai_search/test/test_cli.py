@@ -237,7 +237,6 @@ def test_top_level_query_runs_search_then_prompt_builder(monkeypatch, capsys):
     from pathlib import Path
 
     from local_ai_search import cli
-    from local_ai_search.adapters import local_search
 
     calls = []
 
@@ -268,9 +267,11 @@ def test_top_level_query_runs_search_then_prompt_builder(monkeypatch, capsys):
         )
         return "answer text"
 
-    monkeypatch.setattr(local_search, "search", fake_search)
-    monkeypatch.setattr(cli, "latest_web_artifact_for_query", fake_latest)
-    monkeypatch.setattr(cli, "load_evidence_from_local_search", fake_load)
+    from local_ai_search import evidence as evidence_module
+
+    monkeypatch.setattr(evidence_module.local_search, "search", fake_search)
+    monkeypatch.setattr(evidence_module, "latest_web_artifact_for_query", fake_latest)
+    monkeypatch.setattr(evidence_module, "load_evidence_from_local_search", fake_load)
     monkeypatch.setattr(cli.prompt_builder, "run_query", fake_run_query)
     monkeypatch.setattr("sys.argv", ["local-ai-search", "what is sqlite?"])
 

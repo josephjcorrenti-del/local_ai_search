@@ -7,7 +7,11 @@ from local_ai_search.adapters.local_search import (
     LocalSearchAdapterError,
     get_evidence,
 )
+from local_ai_search.adapters import local_search
+from local_ai_search.artifacts import latest_web_artifact_for_query
 from local_ai_search.config import EVIDENCE_LIMIT, EVIDENCE_MAX_CHARS
+from local_ai_search.intent_gate import IntentDecision
+from local_ai_search.session_evidence import build_session_evidence
 
 SUPPORTED_RETRIEVAL_VERSION = 1
 
@@ -92,3 +96,27 @@ def format_evidence_preview(evidence: dict[str, Any]) -> str:
         lines.append("")
 
     return "\n".join(lines).rstrip()
+
+
+def resolve_evidence(
+    query: str,
+    *,
+    decision: IntentDecision,
+    session_name: str | None = None,
+    limit: int | None = None,
+    max_chars: int | None = None,
+) -> dict[str, Any] | None:
+    if decision.needs_retrieval:
+        search_exit_code = local_search.search(query)
+        if search_exit_code != 0:
+            return None
+
+        artifact_path = latest_web_artifact_for_query(query)
+
+        return load_evidence_from_local_search(
+            artifact_path,
+            limit=limit or EVIDENCE_LIMIT,
+            max_chars=max_chars or EVIDENCE_MAX_CHARS,
+        )
+
+    return build_session_evidence(session_name)
