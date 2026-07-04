@@ -12,6 +12,7 @@ from local_ai_search.artifacts import latest_web_artifact_for_query
 from local_ai_search.config import EVIDENCE_LIMIT, EVIDENCE_MAX_CHARS
 from local_ai_search.intent_gate import IntentDecision
 from local_ai_search.session_evidence import build_session_evidence
+from local_ai_search.workspace_evidence import build_workspace_evidence
 
 SUPPORTED_RETRIEVAL_VERSION = 1
 
@@ -103,6 +104,7 @@ def resolve_evidence(
     *,
     decision: IntentDecision,
     session_name: str | None = None,
+    workspace_name: str | None = None,
     limit: int | None = None,
     max_chars: int | None = None,
 ) -> dict[str, Any] | None:
@@ -118,5 +120,8 @@ def resolve_evidence(
             limit=limit or EVIDENCE_LIMIT,
             max_chars=max_chars or EVIDENCE_MAX_CHARS,
         )
+
+    if workspace_name:
+        return build_workspace_evidence(workspace_name)
 
     return build_session_evidence(session_name)

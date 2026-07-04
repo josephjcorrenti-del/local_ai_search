@@ -94,3 +94,33 @@ def test_format_evidence_preview():
     assert "[1] Example Result" in preview
     assert "https://example.com" in preview
     assert "Example snippet." in preview
+
+
+def test_resolve_evidence_uses_workspace_when_provided(monkeypatch):
+    from local_ai_search import evidence
+    from local_ai_search.intent_gate import IntentDecision
+
+    calls = []
+
+    monkeypatch.setattr(
+        evidence,
+        "build_workspace_evidence",
+        lambda workspace_name: calls.append(("workspace", workspace_name)) or {
+            "retrieval_version": 1,
+            "artifact_type": "workspace_context",
+            "provider": "local_ai",
+            "query": None,
+            "workspace": workspace_name,
+            "results": [],
+        },
+    )
+
+    resolved = evidence.resolve_evidence(
+        "use the workspace",
+        decision=IntentDecision("model_only", "test"),
+        workspace_name="local_ai_search",
+    )
+
+    assert calls == [("workspace", "local_ai_search")]
+    assert resolved["artifact_type"] == "workspace_context"
+    assert resolved["workspace"] == "local_ai_search"

@@ -186,9 +186,16 @@
 
 #### Workspace and filesystem evidence
 
-[ ] support workspace evidence source
+[x] support workspace evidence source
 [ ] support explicit filesystem evidence roots
 [ ] use r/o filesystem for evidence
+
+#### Update Front end to use new evidence source types
+
+[ ] add session to FE
+[ ] add workspace to FE
+[ ] add filesystem to FE
+[ ] verify the all results quality results are available in FE
 
 #### Answer quality behavior
 
