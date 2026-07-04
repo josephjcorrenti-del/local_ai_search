@@ -124,3 +124,38 @@ def test_resolve_evidence_uses_workspace_when_provided(monkeypatch):
     assert calls == [("workspace", "local_ai_search")]
     assert resolved["artifact_type"] == "workspace_context"
     assert resolved["workspace"] == "local_ai_search"
+
+
+def test_resolve_evidence_uses_filesystem_when_provided(monkeypatch):
+    from local_ai_search import evidence
+    from local_ai_search.intent_gate import IntentDecision
+
+    calls = []
+
+    monkeypatch.setattr(
+        evidence,
+        "build_filesystem_evidence",
+        lambda root, *, files, max_chars_per_file: calls.append(
+            ("filesystem", root, files, max_chars_per_file)
+        ) or {
+            "retrieval_version": 1,
+            "artifact_type": "filesystem_context",
+            "provider": "filesystem",
+            "query": None,
+            "root": root,
+            "results": [],
+        },
+    )
+
+    resolved = evidence.resolve_evidence(
+        "use files",
+        decision=IntentDecision("model_only", "test"),
+        filesystem_root="/tmp/project",
+        filesystem_files=["README.md"],
+        max_chars=123,
+    )
+
+    assert calls == [
+        ("filesystem", "/tmp/project", ["README.md"], 123),
+    ]
+    assert resolved["artifact_type"] == "filesystem_context"
