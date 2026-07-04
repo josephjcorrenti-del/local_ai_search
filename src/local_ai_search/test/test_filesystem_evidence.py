@@ -101,3 +101,19 @@ def test_build_filesystem_evidence_bounds_file_content(tmp_path):
     )
 
     assert evidence["results"][0]["snippet"] == "abc"
+
+
+def test_build_filesystem_evidence_walks_when_files_not_provided(tmp_path):
+    root = tmp_path / "project"
+    root.mkdir()
+
+    (root / "README.md").write_text("readme", encoding="utf-8")
+    (root / "app.py").write_text("print('hi')", encoding="utf-8")
+    (root / "image.png").write_text("skip", encoding="utf-8")
+
+    evidence = build_filesystem_evidence(root)
+
+    assert [result["title"] for result in evidence["results"]] == [
+        "File: README.md",
+        "File: app.py",
+    ]

@@ -4,6 +4,8 @@ from pathlib import Path
 from typing import Any
 
 from local_ai_search.filesystem_policy import path_should_include
+from local_ai_search.filesystem_walk import walk_filesystem
+
 
 def _path_under_root(root: Path, path: Path) -> bool:
     try:
@@ -33,12 +35,15 @@ def _append_file_result(
 def build_filesystem_evidence(
     root: str | Path,
     *,
-    files: list[str],
+    files: list[str] | None = None,
     max_chars_per_file: int = 4000,
 ) -> dict[str, Any]:
     root_path = Path(root).expanduser().resolve()
 
     results: list[dict[str, Any]] = []
+
+    if files is None:
+        files = walk_filesystem(root_path)
 
     for relative_path in sorted(files):
         candidate = (root_path / relative_path).resolve()

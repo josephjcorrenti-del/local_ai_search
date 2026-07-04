@@ -187,9 +187,9 @@
 #### Workspace and filesystem evidence
 
 [x] support workspace evidence source
-[ ] support explicit filesystem evidence roots
-[ ] support automatic filesystem traversal for approved project roots
-[ ] use r/o filesystem for evidence
+[x] support explicit filesystem evidence roots
+[x] support automatic filesystem traversal for approved project roots
+[x] use r/o filesystem for evidence
 
 #### Update Front end to use new evidence source types
 
