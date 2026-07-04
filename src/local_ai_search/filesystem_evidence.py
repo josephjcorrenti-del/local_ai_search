@@ -3,17 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-
-SUPPORTED_EXTENSIONS = {
-    ".md",
-    ".txt",
-    ".py",
-    ".toml",
-    ".json",
-    ".yaml",
-    ".yml",
-}
-
+from local_ai_search.filesystem_policy import path_should_include
 
 def _path_under_root(root: Path, path: Path) -> bool:
     try:
@@ -56,7 +46,7 @@ def build_filesystem_evidence(
         if not _path_under_root(root_path, candidate):
             raise ValueError(f"path is outside filesystem evidence root: {relative_path}")
 
-        if candidate.suffix not in SUPPORTED_EXTENSIONS:
+        if not path_should_include(Path(relative_path)):
             continue
 
         if not candidate.is_file():

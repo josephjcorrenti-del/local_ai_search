@@ -14,6 +14,7 @@ from local_ai_search.config import (
     default_config_text,
     load_config,
     validate_config,
+    FilesystemConfig
 )
 
 
@@ -43,8 +44,29 @@ summary_model = lightweight_model
 default_mode = integrated
 evidence_limit = 5
 evidence_max_chars = 4000
+
+[filesystem]
+enabled = true
+max_files = 100
+max_chars_per_file = 4000
+supported_extensions = .md,.txt,.py,.toml,.json,.yaml,.yml
+ignored_directories = .git,.venv,__pycache__,node_modules,dist,build
+ignored_filenames = .DS_Store
+ignored_extensions = .pyc,.so,.dll,.exe,.png,.jpg,.jpeg,.gif,.webp,.svg,.pdf,.zip,.tar,.gz
 """.strip(),
         encoding="utf-8",
+    )
+
+
+def filesystem_config_get() -> FilesystemConfig:
+    return FilesystemConfig(
+        enabled=True,
+        max_files=100,
+        max_chars_per_file=4000,
+        supported_extensions=frozenset({".md", ".txt", ".py"}),
+        ignored_directories=frozenset({".git", ".venv"}),
+        ignored_filenames=frozenset({".DS_Store"}),
+        ignored_extensions=frozenset({".pyc", ".png"}),
     )
 
 
@@ -103,6 +125,7 @@ def test_reject_unsupported_provider():
             evidence_limit=5,
             evidence_max_chars=4000,
         ),
+        filesystem=filesystem_config_get(),
     )
 
     with pytest.raises(ConfigError, match="unsupported search provider"):

@@ -43,10 +43,22 @@ class AppConfig:
     search: SearchConfig
     ai: AIConfig
     integration: IntegrationConfig
+    filesystem: FilesystemConfig
 
     @property
     def search_provider(self) -> str:
         return self.search.provider
+
+
+@dataclass(frozen=True)
+class FilesystemConfig:
+    enabled: bool
+    max_files: int
+    max_chars_per_file: int
+    supported_extensions: frozenset[str]
+    ignored_directories: frozenset[str]
+    ignored_filenames: frozenset[str]
+    ignored_extensions: frozenset[str]
 
 
 def default_config_path() -> Path:
@@ -86,6 +98,14 @@ def default_config_text() -> str:
             "default_mode = integrated",
             "evidence_limit = 5",
             "evidence_max_chars = 4000",
+            "[filesystem]",
+            "enabled = true",
+            "max_files = 100",
+            "max_chars_per_file = 4000",
+            "supported_extensions = .md,.txt,.py,.toml,.json,.yaml,.yml",
+            "ignored_directories = .git,.venv,__pycache__,node_modules,dist,build",
+            "ignored_filenames = .DS_Store",
+            "ignored_extensions = .pyc,.so,.dll,.exe,.png,.jpg,.jpeg,.gif,.webp,.svg,.pdf,.zip,.tar,.gz",
             "",
         ]
     )
@@ -99,6 +119,19 @@ def _parser_load(path: Path) -> configparser.ConfigParser:
         raise ConfigError(f"config file not found: {path}")
 
     return parser
+
+
+def _csv_set_get(
+    parser: configparser.ConfigParser,
+    section: str,
+    option: str,
+) -> frozenset[str]:
+    value = parser.get(section, option, fallback="")
+    return frozenset(
+        item.strip()
+        for item in value.split(",")
+        if item.strip()
+    )
 
 
 def load_config(path: Path | None = None) -> AppConfig:
@@ -127,6 +160,31 @@ def load_config(path: Path | None = None) -> AppConfig:
                 evidence_limit=parser.getint("integration", "evidence_limit"),
                 evidence_max_chars=parser.getint("integration", "evidence_max_chars"),
             ),
+            filesystem=FilesystemConfig(
+                enabled=parser.getboolean("filesystem", "enabled"),
+                max_files=parser.getint("filesystem", "max_files"),
+                max_chars_per_file=parser.getint("filesystem", "max_chars_per_file"),
+                supported_extensions=_csv_set_get(
+                    parser,
+                    "filesystem",
+                    "supported_extensions",
+                ),
+                ignored_directories=_csv_set_get(
+                    parser,
+                    "filesystem",
+                    "ignored_directories",
+                ),
+                ignored_filenames=_csv_set_get(
+                    parser,
+                    "filesystem",
+                    "ignored_filenames",
+                ),
+                ignored_extensions=_csv_set_get(
+                    parser,
+                    "filesystem",
+                    "ignored_extensions",
+                ),
+            ),
         )
     except (configparser.Error, ValueError) as exc:
         raise ConfigError(str(exc)) from exc
@@ -150,3 +208,5 @@ _CONFIG = load_config()
 DEFAULT_SEARCH_PROVIDER = _CONFIG.search.provider
 EVIDENCE_LIMIT = _CONFIG.integration.evidence_limit
 EVIDENCE_MAX_CHARS = _CONFIG.integration.evidence_max_chars
+FILESYSTEM_MAX_FILES = _CONFIG.filesystem.max_files
+FILESYSTEM_MAX_CHARS_PER_FILE = _CONFIG.filesystem.max_chars_per_file
