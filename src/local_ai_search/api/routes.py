@@ -6,12 +6,10 @@ from fastapi import APIRouter
 from fastapi.responses import HTMLResponse
 
 from local_ai_search import prompt_builder
-from local_ai_search.adapters import local_ai, local_search
+from local_ai_search.adapters import local_ai
 from local_ai_search.api.schemas import QueryRequest, QueryResponse
-from local_ai_search.artifacts import latest_web_artifact_for_query
-from local_ai_search.config import load_config
-from local_ai_search.evidence import load_evidence_from_local_search
-from local_ai_search.evidence_accounting import evidence_counts_for_web_artifact
+from local_ai_search.evidence import resolve_evidence
+from local_ai_search.intent_gate import decide_intent
 
 router = APIRouter()
 
@@ -46,30 +44,44 @@ def query(request: QueryRequest) -> QueryResponse:
     evidence = None
     accounting = None
 
+    decision = decide_intent(
+        request.query,
+        mode=request.mode,
+        session_name=request.session,
+    )
+
+    intent = {
+        "route": decision.route,
+        "reason": decision.reason,
+    }
+
+    retrieval = None
+
     if request.mode == "ai_only":
         answer = local_ai.ask(request.query)
+        retrieval = {"status": "skipped", "reason": decision.reason}
 
-    elif request.mode in ("web_only", "integrated"):
-        local_search.search(request.query)
+    elif decision.route == "insufficient_context":
+        retrieval = {"status": "insufficient_context", "reason": decision.reason}
 
-        config = load_config()
-        artifact_path = latest_web_artifact_for_query(request.query)
-
-        evidence = load_evidence_from_local_search(
-            artifact_path,
-            limit=request.limit or config.integration.evidence_limit,
-            max_chars=request.max_chars or config.integration.evidence_max_chars,
+    else:
+        evidence = resolve_evidence(
+            request.query,
+            decision=decision,
+            session_name=request.session,
+            limit=request.limit,
+            max_chars=request.max_chars,
         )
 
-        accounting = evidence_counts_for_web_artifact(
-            artifact_path,
-            evidence,
-        ).as_dict()
+        retrieval = {
+            "status": "used" if evidence else "skipped",
+            "reason": decision.reason,
+        }
 
         if request.mode == "integrated":
             answer = prompt_builder.run_query(
                 request.query,
-                evidence,
+                evidence or {"results": []},
                 session_name=request.session,
             )
 
@@ -81,6 +93,8 @@ def query(request: QueryRequest) -> QueryResponse:
         evidence=evidence,
         accounting=accounting,
         elapsed_ms=int((time.perf_counter() - started) * 1000),
+        intent=intent,
+        retrieval=retrieval,
     )
 
 

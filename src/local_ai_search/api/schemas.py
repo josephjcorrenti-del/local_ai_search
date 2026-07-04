@@ -23,6 +23,16 @@ class ApiError(BaseModel):
     message: str
 
 
+class IntentInfo(BaseModel):
+    route: str
+    reason: str
+
+
+class RetrievalInfo(BaseModel):
+    status: str
+    reason: str | None = None
+
+
 class QueryResponse(BaseModel):
     ok: bool
     mode: QueryMode
@@ -32,3 +42,5 @@ class QueryResponse(BaseModel):
     accounting: dict[str, Any] | None = None
     elapsed_ms: int
     error: ApiError | None = None
+    intent: IntentInfo | None = None
+    retrieval: RetrievalInfo | None = None

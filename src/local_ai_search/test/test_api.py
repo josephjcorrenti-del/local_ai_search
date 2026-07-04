@@ -58,8 +58,7 @@ def test_api_query_ai_only_calls_local_ai(monkeypatch):
     assert data["evidence"] is None
     assert calls == ["what is sqlite?"]
 
-def test_api_query_web_only_returns_evidence(monkeypatch, tmp_path):
-    from pathlib import Path
+def test_api_query_web_only_returns_evidence(monkeypatch):
     from local_ai_search.api import routes
 
     calls = []
@@ -80,35 +79,30 @@ def test_api_query_web_only_returns_evidence(monkeypatch, tmp_path):
         ],
     }
 
-    def fake_search(query):
-        calls.append(("search", query))
-        return 0
-
-    artifact_path = tmp_path / "search_jumping_insects.json"
-    artifact_path.write_text(
-        """
-        {
-          "results": [
-            {"title": "one"},
-            {"title": "two"},
-            {"title": "three"}
-          ]
-        }
-        """,
-        encoding="utf-8",
-    )
-
-    def fake_latest(query):
-        calls.append(("latest", query))
-        return artifact_path
-
-    def fake_load(path, *, limit, max_chars):
-        calls.append(("load", str(path), limit, max_chars))
+    def fake_resolve_evidence(
+        query,
+        *,
+        decision,
+        session_name=None,
+        workspace_name=None,
+        filesystem_root=None,
+        filesystem_files=None,
+        limit=None,
+        max_chars=None,
+    ):
+        calls.append(
+            (
+                "resolve_evidence",
+                query,
+                decision.route,
+                session_name,
+                limit,
+                max_chars,
+            )
+        )
         return evidence
 
-    monkeypatch.setattr(routes.local_search, "search", fake_search)
-    monkeypatch.setattr(routes, "latest_web_artifact_for_query", fake_latest)
-    monkeypatch.setattr(routes, "load_evidence_from_local_search", fake_load)
+    monkeypatch.setattr(routes, "resolve_evidence", fake_resolve_evidence)
 
     client = TestClient(create_app())
 
@@ -125,23 +119,21 @@ def test_api_query_web_only_returns_evidence(monkeypatch, tmp_path):
     assert response.status_code == 200
 
     data = response.json()
+
     assert data["ok"] is True
     assert data["mode"] == "web_only"
-    assert data["query"] == "jumping insects"
     assert data["answer"] is None
-    assert data["evidence"]["provider"] == "local_search"
-    assert data["evidence"]["results"][0]["title"] == "Jumping insect result"
-
-    assert data["accounting"] == {
-        "available_count": 3,
-        "evidence_count": 1,
-        "displayed_count": 1,
-    }
+    assert data["evidence"] == evidence
 
     assert calls == [
-        ("search", "jumping insects"),
-        ("latest", "jumping insects"),
-        ("load", str(artifact_path), 3, 500),
+        (
+            "resolve_evidence",
+            "jumping insects",
+            "retrieve",
+            None,
+            3,
+            500,
+        )
     ]
 
 
@@ -155,9 +147,10 @@ def test_api_index_page():
     assert "/api/v1/query" in response.text
 
 
-def test_api_query_integrated_returns_answer_and_evidence(monkeypatch, tmp_path):
-    from pathlib import Path
+def test_api_query_integrated_returns_answer_and_evidence(monkeypatch):
     from local_ai_search.api import routes
+
+    calls = []
 
     evidence = {
         "provider": "local_search",
@@ -171,42 +164,26 @@ def test_api_query_integrated_returns_answer_and_evidence(monkeypatch, tmp_path)
         ],
     }
 
-    monkeypatch.setattr(
-        routes.local_search,
-        "search",
-        lambda query: 0,
-    )
+    def fake_resolve_evidence(
+        query,
+        *,
+        decision,
+        session_name=None,
+        workspace_name=None,
+        filesystem_root=None,
+        filesystem_files=None,
+        limit=None,
+        max_chars=None,
+    ):
+        calls.append(("resolve_evidence", query))
+        return evidence
 
-    artifact_path = tmp_path / "test.json"
-    artifact_path.write_text(
-        """
-        {
-          "results": [
-            {"title": "one"},
-            {"title": "two"}
-          ]
-        }
-        """,
-        encoding="utf-8",
-    )
+    def fake_run_query(query, loaded_evidence, session_name=None):
+        calls.append(("run_query", query, loaded_evidence))
+        return "SQLite answer"
 
-    monkeypatch.setattr(
-        routes,
-        "latest_web_artifact_for_query",
-        lambda query: artifact_path
-    )
-
-    monkeypatch.setattr(
-        routes,
-        "load_evidence_from_local_search",
-        lambda path, *, limit, max_chars: evidence,
-    )
-
-    monkeypatch.setattr(
-        routes.prompt_builder,
-        "run_query",
-        lambda *args, **kwargs: "SQLite answer",
-    )
+    monkeypatch.setattr(routes, "resolve_evidence", fake_resolve_evidence)
+    monkeypatch.setattr(routes.prompt_builder, "run_query", fake_run_query)
 
     client = TestClient(create_app())
 
@@ -218,6 +195,8 @@ def test_api_query_integrated_returns_answer_and_evidence(monkeypatch, tmp_path)
         },
     )
 
+    assert response.status_code == 200
+
     data = response.json()
 
     assert data["ok"] is True
@@ -225,11 +204,10 @@ def test_api_query_integrated_returns_answer_and_evidence(monkeypatch, tmp_path)
     assert data["answer"] == "SQLite answer"
     assert data["evidence"] == evidence
 
-    assert data["accounting"] == {
-        "available_count": 2,
-        "evidence_count": 1,
-        "displayed_count": 1,
-    }
+    assert calls == [
+        ("resolve_evidence", "what is sqlite?"),
+        ("run_query", "what is sqlite?", evidence),
+    ]
 
 
 def test_api_query_contract(monkeypatch):
