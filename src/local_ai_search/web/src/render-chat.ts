@@ -40,15 +40,18 @@ function renderTurn(turn: ChatTurn): string {
             sources.length > 0
               ? `
                 <details class="sources" open>
-                  <summary>Sources</summary>
+                  <summary>Evidence</summary>
                   <ol>
                     ${sources
                       .map(
                         (source) => `
                           <li>
-                            <a href="${escapeAttr(source.url)}" target="_blank" rel="noopener noreferrer">
-                              ${escapeHtml(source.title || "Untitled")}
-                            </a>
+                            ${renderEvidenceTitle(source)}
+                            ${
+                              source.url
+                                ? `<div class="result-url">${escapeHtml(source.url)}</div>`
+                                : ""
+                            }
                             ${
                               source.snippet
                                 ? `<p>${escapeHtml(source.snippet)}</p>`
@@ -69,7 +72,7 @@ function renderTurn(turn: ChatTurn): string {
                 <details class="sources evidence-details" open>
                   <summary>Evidence</summary>
                   <section class="evidence-summary">
-                    <strong>Web</strong>
+                    <strong>Evidence summary</strong>
                     <p>
                       Found: ${accounting.available_count}
                       &nbsp; Used: ${accounting.evidence_count}
@@ -88,6 +91,27 @@ function renderTurn(turn: ChatTurn): string {
       </article>
     </section>
   `;
+}
+
+function renderEvidenceTitle(result: {
+  title?: string;
+  url?: string;
+  source_type?: string;
+}): string {
+  const label = result.source_type
+    ? `<span class="source-type">${escapeHtml(result.source_type)}</span> `
+    : "";
+  const title = escapeHtml(result.title || "Untitled");
+
+  if (result.url) {
+    return `
+      ${label}<a class="result-title" href="${escapeAttr(result.url)}" target="_blank" rel="noopener noreferrer">
+        ${title}
+      </a>
+    `;
+  }
+
+  return `${label}<strong class="result-title">${title}</strong>`;
 }
 
 function formatAnswer(value: string): string {

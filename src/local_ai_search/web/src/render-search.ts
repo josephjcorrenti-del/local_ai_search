@@ -2,6 +2,7 @@ import type { QueryResponse } from "./types";
 
 export function renderSearch(response: QueryResponse): string {
   const results = response.evidence?.results ?? [];
+  const accounting = response.accounting;
 
   if (results.length === 0) {
     return `
@@ -27,10 +28,12 @@ export function renderSearch(response: QueryResponse): string {
         .map(
           (result) => `
             <article class="search-result">
-              <a class="result-title" href="${escapeAttr(result.url)}" target="_blank" rel="noopener noreferrer">
-                ${escapeHtml(result.title || "Untitled")}
-              </a>
-              <div class="result-url">${escapeHtml(result.url || "")}</div>
+              ${renderEvidenceTitle(result)}
+              ${
+                result.url
+                  ? `<div class="result-url">${escapeHtml(result.url)}</div>`
+                  : ""
+              }
               <p>${escapeHtml(result.snippet || "")}</p>
             </article>
           `,
