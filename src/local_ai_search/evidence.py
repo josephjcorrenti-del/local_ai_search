@@ -116,13 +116,16 @@ def resolve_evidence(
         if search_exit_code != 0:
             return None
 
-        artifact_path = latest_web_artifact_for_query(query)
+        try:
+            artifact_path = latest_web_artifact_for_query(query)
 
-        return load_evidence_from_local_search(
-            artifact_path,
-            limit=limit or EVIDENCE_LIMIT,
-            max_chars=max_chars or EVIDENCE_MAX_CHARS,
-        )
+            return load_evidence_from_local_search(
+                artifact_path,
+                limit=limit or EVIDENCE_LIMIT,
+                max_chars=max_chars or EVIDENCE_MAX_CHARS,
+            )
+        except LocalSearchAdapterError:
+            return None
 
     if filesystem_root and filesystem_files:
         return build_filesystem_evidence(
