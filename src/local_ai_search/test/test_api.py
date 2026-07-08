@@ -247,3 +247,26 @@ def test_search_route_exists():
 
     assert response.status_code == 200
     assert "local_ai_search" in response.text
+
+
+def test_api_navigation(monkeypatch):
+    from local_ai_search.api import routes
+
+    monkeypatch.setattr(
+        routes,
+        "build_navigation_tree",
+        lambda: {
+            "sessions": [{"name": "default"}],
+            "workspaces": [],
+        },
+    )
+
+    client = TestClient(create_app())
+
+    response = client.get("/api/v1/navigation")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "sessions": [{"name": "default"}],
+        "workspaces": [],
+    }
