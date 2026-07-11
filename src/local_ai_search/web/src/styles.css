@@ -27,6 +27,7 @@ body {
   width: min(1180px, calc(100vw - 2rem));
   margin: 0 auto;
   padding: 2rem 0 3rem;
+  grid-column: 2;
 }
 
 .empty-state {
@@ -263,10 +264,17 @@ p {
   color: #aeb8c9;
 }
 
-.query-form {
-  display: grid;
-  grid-template-columns: 1fr minmax(9rem, auto) auto;
-  gap: 0.75rem;
+.query-form button {
+  width: 8rem;
+}
+
+.session-input {
+  min-width: 0;
+}
+
+.query-input {
+  width: 100%;
+  min-width: 0;
 }
 
 .privacy-note {
@@ -322,9 +330,9 @@ button {
   }
 }
 
-@media (max-width: 850px) {
+@media (max-width: 650px) {
   .app-shell {
-    padding-bottom: 15rem;
+    padding-bottom: 12rem;
   }
 
   .composer-shell {
@@ -338,4 +346,64 @@ button {
   .privacy-note {
     grid-column: auto;
   }
+}
+
+.app-shell {
+  display: grid;
+  grid-template-columns: 16rem 1fr;
+  gap: 1rem;
+}
+
+.navigation-panel {
+  position: fixed;
+  left: 1rem;
+  top: 1rem;
+  bottom: 10.5rem;
+  width: 16rem;
+  padding: 1rem;
+  border: 1px solid rgba(111, 127, 163, 0.36);
+  border-radius: 1rem;
+  background: rgba(13, 24, 42, 0.9);
+  overflow: auto;
+}
+
+.navigation-panel h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+}
+
+.session-list {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.session-button {
+  min-height: 2.4rem;
+  text-align: left;
+  font-size: 0.9rem;
+  background: rgba(22, 32, 49, 0.9);
+}
+
+.navigation-empty {
+  color: #aeb8c9;
+  font-size: 0.9rem;
+}
+
+.navigation-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.navigation-heading h2 {
+  margin: 0;
+}
+
+.new-session-button {
+  width: 2.2rem;
+  min-height: 2.2rem;
+  padding: 0;
+  border-radius: 0.6rem;
 }

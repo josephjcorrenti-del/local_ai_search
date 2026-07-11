@@ -1,4 +1,4 @@
-import { runQuery } from "./api";
+import { loadNavigation, loadSession, runQuery } from "./api";
 import { renderChat, type ChatTurn } from "./render-chat";
 import { renderSearch } from "./render-search";
 import type { QueryMode } from "./types";
@@ -12,7 +12,16 @@ if (!app) {
 
 app.innerHTML = `
   <section class="app-shell">
-    <main id="conversation" class="conversation">
+      <aside id="navigation" class="navigation-panel">
+        <section class="navigation-heading">
+          <h2>Sessions</h2>
+          <button id="new-session" type="button" class="new-session-button">+</button>
+        </section>
+        <p id="selected-session" class="selected-session">No session selected</p>
+        <div id="session-list" class="session-list"></div>
+      </aside>
+
+      <main id="conversation" class="conversation">
       <section id="empty-state" class="empty-state">
         <p class="eyebrow">local first · LAN friendly · API backed</p>
         <h1>Local AI Search</h1>
@@ -28,8 +37,9 @@ app.innerHTML = `
         <p>local first · LAN friendly · API backed</p>
       </section>
 
-      <form id="query-form" class="query-form">
-        <input id="query" name="query" placeholder="Search or ask..." required />
+<form id="query-form" class="query-form">
+        <input id="query" class="query-input" name="query" placeholder="Search or ask..." required />
+        <input id="session" name="session" type="hidden" />
         <select id="mode" name="mode">
           <option value="integrated">integrated</option>
           <option value="ai_only">ai only</option>
@@ -44,20 +54,109 @@ app.innerHTML = `
 `;
 
 const form = document.querySelector<HTMLFormElement>("#query-form");
+const sessionList = document.querySelector<HTMLElement>("#session-list");
+const selectedSession =
+  document.querySelector<HTMLElement>("#selected-session");
+const newSessionButton =
+  document.querySelector<HTMLButtonElement>("#new-session");
+const sessionInput = document.querySelector<HTMLInputElement>("#session");
 const queryInput = document.querySelector<HTMLInputElement>("#query");
 const modeSelect = document.querySelector<HTMLSelectElement>("#mode");
 const output = document.querySelector<HTMLElement>("#output");
 const emptyState = document.querySelector<HTMLElement>("#empty-state");
 
-if (!form || !queryInput || !modeSelect || !output || !emptyState) {
+if (
+  !form ||
+  !sessionList ||
+  !selectedSession ||
+  !newSessionButton ||
+  !sessionInput ||
+  !queryInput ||
+  !modeSelect ||
+  !output ||
+  !emptyState
+) {
   throw new Error("missing UI elements");
 }
 
 const chatTurns: ChatTurn[] = [];
+let loadedSessionHtml = "";
 
 const initialParams = new URLSearchParams(window.location.search);
 const initialQuery = initialParams.get("query");
 const initialMode = initialParams.get("mode");
+
+async function refreshNavigation(): Promise<void> {
+  try {
+    const tree = await loadNavigation();
+
+    sessionList.innerHTML = tree.sessions
+      .map(
+        (session) => `
+          <button type="button" class="session-button" data-session="${escapeAttr(session.name)}">
+            ${escapeHtml(session.name)}
+          </button>
+        `,
+      )
+      .join("");
+
+    sessionList
+      .querySelectorAll<HTMLButtonElement>(".session-button")
+      .forEach((button) => {
+        button.addEventListener("click", async () => {
+          const sessionName = button.dataset.session || "";
+
+          if (!sessionName) {
+            return;
+          }
+
+          sessionInput.value = sessionName;
+          selectedSession.textContent = `Selected: ${sessionName}`;
+
+          try {
+            const history = await loadSession(sessionName);
+
+            chatTurns.length = 0;
+            loadedSessionHtml = renderSessionHistory(history.messages);
+
+            output.innerHTML = loadedSessionHtml;
+            emptyState.hidden = true;
+          } catch (error) {
+            output.innerHTML = renderError(
+              error instanceof Error
+                ? error.message
+                : "Unable to load session",
+            );
+          }
+        });
+      });
+  } catch (error) {
+    sessionList.innerHTML = `
+      <p class="navigation-empty">
+        Unable to load sessions: ${escapeHtml(String(error))}
+      </p>
+    `;
+  }
+}
+
+void refreshNavigation();
+
+newSessionButton.addEventListener("click", () => {
+  const name = window.prompt("New session name:");
+
+  if (!name?.trim()) {
+    return;
+  }
+
+  sessionInput.value = name.trim();
+  selectedSession.textContent = `New session: ${name.trim()}`;
+  chatTurns.length = 0;
+  loadedSessionHtml = "";
+  output.innerHTML = "";
+  emptyState.hidden = false;
+  queryInput.value = "";
+  queryInput.focus();
+});
 
 if (initialQuery) {
   queryInput.value = initialQuery;
@@ -70,6 +169,7 @@ if (initialMode === "integrated" || initialMode === "ai_only" || initialMode ===
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
 
+  const session = sessionInput.value.trim();
   const query = queryInput.value.trim();
   const mode = modeSelect.value as QueryMode;
 
@@ -83,13 +183,14 @@ form.addEventListener("submit", async (event) => {
     output.innerHTML = renderLoading();
   } else {
     output.innerHTML = `
+      ${loadedSessionHtml}
       ${renderChat(chatTurns)}
       ${renderLoading()}
     `;
   }
 
   try {
-    const response = await runQuery(query, mode);
+    const response = await runQuery(query, mode, session);
 
     if (!response.ok) {
       output.innerHTML = renderError(response.error?.message ?? "Unknown error");
@@ -102,7 +203,13 @@ form.addEventListener("submit", async (event) => {
     }
 
     chatTurns.push({ query, response });
-    output.innerHTML = renderChat(chatTurns);
+    output.innerHTML = `
+      ${loadedSessionHtml}
+      ${renderChat(chatTurns)}
+    `;
+
+    await refreshNavigation();
+
     queryInput.value = "";
     window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
   } catch (error) {
@@ -111,6 +218,48 @@ form.addEventListener("submit", async (event) => {
     );
   }
 });
+
+function renderSessionHistory(
+  messages: Array<{ role: string; content: string }>,
+): string {
+  if (messages.length === 0) {
+    return `
+      <section class="empty-state">
+        <h2>Empty session</h2>
+        <p>This session does not contain any messages yet.</p>
+      </section>
+    `;
+  }
+
+  return `
+    <section class="chat">
+      ${messages
+        .map(
+          (message) => `
+            <article class="message ${
+              message.role === "user" ? "user-message" : "assistant-message"
+            }">
+              <div class="avatar">${message.role === "user" ? "●" : "◎"}</div>
+              <div class="message-body">
+                <div class="message-label">
+                  ${message.role === "user" ? "You" : "Local AI Search"}
+                </div>
+                <div class="answer">${formatSessionContent(message.content)}</div>
+              </div>
+            </article>
+          `,
+        )
+        .join("")}
+    </section>
+  `;
+}
+
+function formatSessionContent(value: string): string {
+  return escapeHtml(value)
+    .split("\n\n")
+    .map((paragraph) => `<p>${paragraph.replaceAll("\n", "<br>")}</p>`)
+    .join("");
+}
 
 function renderLoading(): string {
   return `
@@ -137,4 +286,8 @@ function escapeHtml(value: string): string {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function escapeAttr(value: string): string {
+  return escapeHtml(value);
 }

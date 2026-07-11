@@ -1,5 +1,24 @@
 export type QueryMode = "integrated" | "ai_only" | "web_only";
 
+export type SessionNode = {
+  name: string;
+};
+
+export type FileNode = {
+  path: string;
+};
+
+export type WorkspaceNode = {
+  name: string;
+  sessions: SessionNode[];
+  files: FileNode[];
+};
+
+export type NavigationTree = {
+  sessions: SessionNode[];
+  workspaces: WorkspaceNode[];
+};
+
 export type EvidenceResult = {
   rank: number;
   title: string;
@@ -51,4 +70,14 @@ export type QueryResponse = {
   retrieval: RetrievalInfo | null;
   elapsed_ms: number;
   error: { type: string; message: string } | null;
+};
+
+export type SessionMessage = {
+  role: "user" | "assistant" | "system";
+  content: string;
+};
+
+export type SessionHistory = {
+  name: string;
+  messages: SessionMessage[];
 };
