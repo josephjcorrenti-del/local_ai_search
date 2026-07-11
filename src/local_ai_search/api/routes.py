@@ -10,6 +10,7 @@ from local_ai_search.adapters import local_ai
 from local_ai_search.api.schemas import QueryRequest, QueryResponse
 from local_ai_search.evidence import resolve_evidence
 from local_ai_search.intent_gate import decide_intent
+from local_ai.memory import session_turns_get
 from local_ai_search.navigation import build_navigation_tree
 
 router = APIRouter()
@@ -40,6 +41,14 @@ def config() -> dict:
 @router.get("/navigation")
 def navigation() -> dict:
     return build_navigation_tree()
+
+
+@router.get("/sessions/{session_name}")
+def session_history(session_name: str) -> dict:
+    return {
+        "name": session_name,
+        "messages": session_turns_get(session_name),
+    }
 
 
 @router.post("/query", response_model=QueryResponse)

@@ -270,3 +270,41 @@ def test_api_navigation(monkeypatch):
         "sessions": [{"name": "default"}],
         "workspaces": [],
     }
+
+
+def test_api_session_history(monkeypatch):
+    from local_ai_search.api import routes
+
+    monkeypatch.setattr(
+        routes,
+        "session_turns_get",
+        lambda session_name: [
+            {
+                "role": "user",
+                "content": "My favorite database is SQLite.",
+            },
+            {
+                "role": "assistant",
+                "content": "SQLite is a good lightweight database.",
+            },
+        ],
+    )
+
+    client = TestClient(create_app())
+
+    response = client.get("/api/v1/sessions/test")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "name": "test",
+        "messages": [
+            {
+                "role": "user",
+                "content": "My favorite database is SQLite.",
+            },
+            {
+                "role": "assistant",
+                "content": "SQLite is a good lightweight database.",
+            },
+        ],
+    }
