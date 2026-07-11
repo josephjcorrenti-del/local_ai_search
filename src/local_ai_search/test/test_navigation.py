@@ -6,8 +6,17 @@ def test_build_navigation_tree(monkeypatch):
 
     monkeypatch.setattr(
         navigation,
-        "session_names_get",
-        lambda: ["default", "test"],
+        "sessions_stats_get",
+        lambda: [
+            {
+                "session": "default",
+                "last_updated": "2026-07-01T10:00:00+00:00",
+            },
+            {
+                "session": "test",
+                "last_updated": "2026-07-11T10:00:00+00:00",
+            },
+        ],
     )
     monkeypatch.setattr(
         navigation,
@@ -27,8 +36,8 @@ def test_build_navigation_tree(monkeypatch):
 
     assert tree == {
         "sessions": [
-            {"name": "default"},
             {"name": "test"},
+            {"name": "default"},
         ],
         "workspaces": [
             {
@@ -43,3 +52,34 @@ def test_build_navigation_tree(monkeypatch):
             }
         ],
     }
+
+
+def test_build_navigation_tree_puts_recent_sessions_first(monkeypatch):
+    import local_ai_search.navigation as navigation
+
+    monkeypatch.setattr(
+        navigation,
+        "sessions_stats_get",
+        lambda: [
+            {
+                "session": "older",
+                "last_updated": "2026-07-01T10:00:00+00:00",
+            },
+            {
+                "session": "missing-date",
+            },
+            {
+                "session": "newer",
+                "last_updated": "2026-07-11T10:00:00+00:00",
+            },
+        ],
+    )
+    monkeypatch.setattr(navigation, "workspace_names_get", lambda: [])
+
+    tree = navigation.build_navigation_tree()
+
+    assert tree["sessions"] == [
+        {"name": "newer"},
+        {"name": "older"},
+        {"name": "missing-date"},
+    ]

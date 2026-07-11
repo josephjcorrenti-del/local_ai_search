@@ -193,8 +193,8 @@
 
 #### Update Front end to use new evidence source types
 
-[ ] add session to FE
-[ ] order sessions by last message date
+[x] add session to FE
+[x] order sessions by last message date
 [ ] add workspace to FE
 [ ] add filesystem to FE
 [ ] verify the all results quality results are available in FE
