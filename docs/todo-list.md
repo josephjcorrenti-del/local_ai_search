@@ -194,6 +194,7 @@
 #### Update Front end to use new evidence source types
 
 [ ] add session to FE
+[ ] order sessions by last message date
 [ ] add workspace to FE
 [ ] add filesystem to FE
 [ ] verify the all results quality results are available in FE
@@ -210,6 +211,8 @@
 
 [ ] add deterministic integrated prompt_builder quality tests
 [ ] compare local/search/AI output quality
+[ ] improve follow-up intent/context linking
+[ ] prevent duplicate query submission
 
 ### Phase 2.3.1 – Results quality in GUI
 
@@ -261,3 +264,4 @@
 [ ] make default query mode evidence-aware
 [ ] verify local ai search uses default session
 [ ] verify local ai acts like local ai search 
+[ ] NavigationTree needs to be editable on the front end
