@@ -265,3 +265,5 @@
 [ ] verify local ai search uses default session
 [ ] verify local ai acts like local ai search 
 [ ] NavigationTree needs to be editable on the front end
+[ ] Default session should probably create a new session
+[ ] not clear where new session is being created
