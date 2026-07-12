@@ -84,6 +84,7 @@ def query(request: QueryRequest) -> QueryResponse:
             request.query,
             decision=decision,
             session_name=request.session,
+            workspace_name=request.workspace,
             limit=request.limit,
             max_chars=request.max_chars,
         )

@@ -13,6 +13,7 @@ class QueryRequest(BaseModel):
     mode: QueryMode = "integrated"
 
     session: str | None = None
+    workspace: str | None = None
 
     limit: int | None = None
     max_chars: int | None = None

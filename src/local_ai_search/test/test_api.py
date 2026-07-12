@@ -308,3 +308,85 @@ def test_api_session_history(monkeypatch):
             },
         ],
     }
+
+
+def test_api_query_passes_workspace_to_evidence_resolution(monkeypatch):
+    from local_ai_search.api import routes
+
+    calls = []
+
+    def fake_decide_intent(
+        query,
+        *,
+        mode="integrated",
+        session_name=None,
+    ):
+        class Decision:
+            route = "model_only"
+            reason = "workspace context selected"
+            needs_retrieval = False
+
+        return Decision()
+
+    def fake_resolve_evidence(
+        query,
+        *,
+        decision,
+        session_name=None,
+        workspace_name=None,
+        filesystem_root=None,
+        filesystem_files=None,
+        limit=None,
+        max_chars=None,
+    ):
+        calls.append(
+            {
+                "query": query,
+                "session_name": session_name,
+                "workspace_name": workspace_name,
+                "limit": limit,
+                "max_chars": max_chars,
+            }
+        )
+        return {
+            "retrieval_version": 1,
+            "artifact_type": "workspace_context",
+            "provider": "local_ai",
+            "workspace": workspace_name,
+            "results": [],
+        }
+
+    monkeypatch.setattr(routes, "decide_intent", fake_decide_intent)
+    monkeypatch.setattr(routes, "resolve_evidence", fake_resolve_evidence)
+    monkeypatch.setattr(
+        routes.prompt_builder,
+        "run_query",
+        lambda query, evidence, session_name=None: "workspace answer",
+    )
+
+    client = TestClient(create_app())
+
+    response = client.post(
+        "/api/v1/query",
+        json={
+            "query": "what is this project working on?",
+            "mode": "integrated",
+            "session": "workspace-test",
+            "workspace": "local_ai_search",
+            "limit": 4,
+            "max_chars": 2500,
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["answer"] == "workspace answer"
+
+    assert calls == [
+        {
+            "query": "what is this project working on?",
+            "session_name": "workspace-test",
+            "workspace_name": "local_ai_search",
+            "limit": 4,
+            "max_chars": 2500,
+        }
+    ]
