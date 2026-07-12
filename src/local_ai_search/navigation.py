@@ -3,7 +3,10 @@ from __future__ import annotations
 from typing import Any
 
 from local_ai.memory import sessions_stats_get
-from local_ai.workspace import workspace_load, workspace_names_get
+from local_ai.workspace import (
+    workspace_chat_sources_get,
+    workspace_names_get,
+)
 
 
 def build_navigation_tree() -> dict[str, Any]:
@@ -35,7 +38,7 @@ def _session_nodes() -> list[dict[str, str]]:
 
 
 def _workspace_node(name: str) -> dict[str, Any]:
-    workspace = workspace_load(name)
+    workspace = workspace_chat_sources_get(name)
 
     return {
         "name": name,

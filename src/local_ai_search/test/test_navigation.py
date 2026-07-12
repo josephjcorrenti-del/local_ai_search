@@ -25,7 +25,7 @@ def test_build_navigation_tree(monkeypatch):
     )
     monkeypatch.setattr(
         navigation,
-        "workspace_load",
+        "workspace_chat_sources_get",
         lambda name: {
             "sessions": ["frontend"],
             "files": ["README.md", "docs/todo-list.md"],
