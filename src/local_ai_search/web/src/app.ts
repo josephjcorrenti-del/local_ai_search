@@ -23,6 +23,7 @@ app.innerHTML = `
           <button id="new-session" type="button" class="new-session-button">+</button>
         </section>
         <p id="selected-session" class="selected-session">No session selected</p>
+        <p id="selected-workspace" class="selected-workspace">No workspace selected</p>
         <div id="session-list" class="session-list"></div>
       </aside>
 
@@ -45,6 +46,7 @@ app.innerHTML = `
 <form id="query-form" class="query-form">
         <input id="query" class="query-input" name="query" placeholder="Search or ask..." required />
         <input id="session" name="session" type="hidden" />
+        <input id="workspace" name="workspace" type="hidden" />
         <select id="mode" name="mode">
           <option value="integrated">integrated</option>
           <option value="ai_only">ai only</option>
@@ -62,9 +64,13 @@ const form = document.querySelector<HTMLFormElement>("#query-form");
 const sessionList = document.querySelector<HTMLElement>("#session-list");
 const selectedSession =
   document.querySelector<HTMLElement>("#selected-session");
+const selectedWorkspace =
+  document.querySelector<HTMLElement>("#selected-workspace");
 const newSessionButton =
   document.querySelector<HTMLButtonElement>("#new-session");
 const sessionInput = document.querySelector<HTMLInputElement>("#session");
+const workspaceInput =
+  document.querySelector<HTMLInputElement>("#workspace");
 const queryInput = document.querySelector<HTMLInputElement>("#query");
 const modeSelect = document.querySelector<HTMLSelectElement>("#mode");
 const output = document.querySelector<HTMLElement>("#output");
@@ -74,6 +80,7 @@ if (
   !form ||
   !sessionList ||
   !selectedSession ||
+  !workspaceInput ||
   !newSessionButton ||
   !sessionInput ||
   !queryInput ||
@@ -127,6 +134,39 @@ async function refreshNavigation(): Promise<void> {
           }
         });
       });
+      sessionList
+        .querySelectorAll<HTMLButtonElement>(".workspace-button")
+        .forEach((button) => {
+          button.addEventListener("click", () => {
+            const workspaceName = button.dataset.workspace || "";
+
+            if (!workspaceName) {
+              return;
+            }
+
+            workspaceInput.value = workspaceName;
+            selectedWorkspace.textContent = `Selected: ${workspaceName}`;
+
+            sessionList
+              .querySelectorAll<HTMLButtonElement>(".workspace-button")
+              .forEach((item) => {
+                item.classList.toggle(
+                  "selected",
+                  item.dataset.workspace === workspaceName,
+                );
+              });
+          });
+        });
+        if (workspaceInput.value) {
+          sessionList
+            .querySelectorAll<HTMLButtonElement>(".workspace-button")
+            .forEach((button) => {
+              button.classList.toggle(
+                "selected",
+                button.dataset.workspace === workspaceInput.value,
+              );
+            });
+        }
   } catch (error) {
     sessionList.innerHTML = `
       <p class="navigation-empty">
@@ -146,6 +186,8 @@ newSessionButton.addEventListener("click", () => {
   }
 
   sessionInput.value = name.trim();
+  workspaceInput.value = "";
+  selectedWorkspace.textContent = "No workspace selected";
   selectedSession.textContent = `New session: ${name.trim()}`;
   chatTurns.length = 0;
   loadedSessionHtml = "";
@@ -262,7 +304,13 @@ function renderWorkspaceNodes(workspaces: WorkspaceNode[]): string {
     .map(
       (workspace) => `
         <section class="workspace-node">
-          <div class="workspace-name">${escapeHtml(workspace.name)}</div>
+        <button
+          type="button"
+          class="workspace-button"
+          data-workspace="${escapeAttr(workspace.name)}"
+        >
+          ${escapeHtml(workspace.name)}
+        </button>
 
           <div class="workspace-children">
             ${workspace.sessions

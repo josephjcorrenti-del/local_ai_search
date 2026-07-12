@@ -419,12 +419,26 @@ button {
   gap: 0.35rem;
 }
 
-.workspace-name {
+.workspace-button {
+  width: 100%;
+  min-height: 2.4rem;
   padding: 0.55rem 0.65rem;
+  text-align: left;
   border-radius: 0.55rem;
   background: rgba(22, 32, 49, 0.9);
   font-size: 0.9rem;
   font-weight: 600;
+}
+
+.workspace-button.selected {
+  outline: 1px solid rgba(86, 156, 255, 0.9);
+  background: rgba(31, 47, 72, 0.95);
+}
+
+.selected-workspace {
+  margin-top: -0.35rem;
+  color: #aeb8c9;
+  font-size: 0.9rem;
 }
 
 .workspace-children {
