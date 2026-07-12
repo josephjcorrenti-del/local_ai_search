@@ -1,7 +1,12 @@
 import { loadNavigation, loadSession, runQuery } from "./api";
 import { renderChat, type ChatTurn } from "./render-chat";
 import { renderSearch } from "./render-search";
-import type { QueryMode } from "./types";
+import type {
+  NavigationTree,
+  QueryMode,
+  SessionNode,
+  WorkspaceNode,
+} from "./types";
 import "./styles.css";
 
 const app = document.querySelector<HTMLDivElement>("#app");
@@ -90,15 +95,7 @@ async function refreshNavigation(): Promise<void> {
   try {
     const tree = await loadNavigation();
 
-    sessionList.innerHTML = tree.sessions
-      .map(
-        (session) => `
-          <button type="button" class="session-button" data-session="${escapeAttr(session.name)}">
-            ${escapeHtml(session.name)}
-          </button>
-        `,
-      )
-      .join("");
+    sessionList.innerHTML = renderNavigation(tree);
 
     sessionList
       .querySelectorAll<HTMLButtonElement>(".session-button")
@@ -218,6 +215,81 @@ form.addEventListener("submit", async (event) => {
     );
   }
 });
+
+function renderNavigation(tree: NavigationTree): string {
+  return `
+    <section class="navigation-group">
+      ${renderSessionNodes(tree.sessions)}
+    </section>
+
+    <section class="navigation-group workspace-navigation">
+      <h2>Workspaces</h2>
+      ${renderWorkspaceNodes(tree.workspaces)}
+    </section>
+  `;
+}
+
+function renderSessionNodes(sessions: SessionNode[]): string {
+  if (sessions.length === 0) {
+    return `
+      <p class="navigation-empty">No sessions</p>
+    `;
+  }
+
+  return sessions
+    .map(
+      (session) => `
+        <button
+          type="button"
+          class="session-button"
+          data-session="${escapeAttr(session.name)}"
+        >
+          ${escapeHtml(session.name)}
+        </button>
+      `,
+    )
+    .join("");
+}
+
+function renderWorkspaceNodes(workspaces: WorkspaceNode[]): string {
+  if (workspaces.length === 0) {
+    return `
+      <p class="navigation-empty">No workspaces</p>
+    `;
+  }
+
+  return workspaces
+    .map(
+      (workspace) => `
+        <section class="workspace-node">
+          <div class="workspace-name">${escapeHtml(workspace.name)}</div>
+
+          <div class="workspace-children">
+            ${workspace.sessions
+              .map(
+                (session) => `
+                  <div class="workspace-session">
+                    ${escapeHtml(session.name)}
+                  </div>
+                `,
+              )
+              .join("")}
+
+            ${workspace.files
+              .map(
+                (file) => `
+                  <div class="workspace-file">
+                    ${escapeHtml(file.path)}
+                  </div>
+                `,
+              )
+              .join("")}
+          </div>
+        </section>
+      `,
+    )
+    .join("");
+}
 
 function renderSessionHistory(
   messages: Array<{ role: string; content: string }>,

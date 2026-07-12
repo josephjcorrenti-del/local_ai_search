@@ -260,7 +260,7 @@
 [ ] create docker container
 [ ] make sure ELK still works correctly.
 [ ] create/use chat summary for performance
-[ ] ai is using old data directory
+[x] verify local_ai uses the current monorepo runtime data directory
 [ ] make default query mode evidence-aware
 [ ] verify local ai search uses default session
 [ ] verify local ai acts like local ai search 

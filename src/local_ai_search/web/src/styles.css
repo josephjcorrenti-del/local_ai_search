@@ -401,6 +401,50 @@ button {
   margin: 0;
 }
 
+.navigation-group {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.workspace-navigation {
+  margin-top: 1.5rem;
+}
+
+.workspace-navigation h2 {
+  margin-bottom: 0.35rem;
+}
+
+.workspace-node {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.workspace-name {
+  padding: 0.55rem 0.65rem;
+  border-radius: 0.55rem;
+  background: rgba(22, 32, 49, 0.9);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.workspace-children {
+  display: grid;
+  gap: 0.25rem;
+  padding-left: 0.85rem;
+}
+
+.workspace-session,
+.workspace-file {
+  padding: 0.3rem 0.45rem;
+  color: #aeb8c9;
+  font-size: 0.82rem;
+  overflow-wrap: anywhere;
+}
+
+.workspace-file {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
 .new-session-button {
   width: 2.2rem;
   min-height: 2.2rem;
