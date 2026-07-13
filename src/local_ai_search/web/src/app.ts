@@ -80,6 +80,7 @@ if (
   !form ||
   !sessionList ||
   !selectedSession ||
+  !selectedWorkspace ||
   !workspaceInput ||
   !newSessionButton ||
   !sessionInput ||
@@ -114,66 +115,137 @@ async function refreshNavigation(): Promise<void> {
             return;
           }
 
-          sessionInput.value = sessionName;
-          selectedSession.textContent = `Selected: ${sessionName}`;
-
-          try {
-            const history = await loadSession(sessionName);
-
-            chatTurns.length = 0;
-            loadedSessionHtml = renderSessionHistory(history.messages);
-
-            output.innerHTML = loadedSessionHtml;
-            emptyState.hidden = true;
-          } catch (error) {
-            output.innerHTML = renderError(
-              error instanceof Error
-                ? error.message
-                : "Unable to load session",
-            );
-          }
+          await openSession(sessionName, null);
         });
       });
-      sessionList
-        .querySelectorAll<HTMLButtonElement>(".workspace-button")
-        .forEach((button) => {
-          button.addEventListener("click", () => {
-            const workspaceName = button.dataset.workspace || "";
 
-            if (!workspaceName) {
-              return;
-            }
+    sessionList
+      .querySelectorAll<HTMLButtonElement>(".workspace-button")
+      .forEach((button) => {
+        button.addEventListener("click", () => {
+          const workspaceName = button.dataset.workspace || "";
+          const workspace = tree.workspaces.find(
+            (item) => item.name === workspaceName,
+          );
 
-            workspaceInput.value = workspaceName;
-            selectedWorkspace.textContent = `Selected: ${workspaceName}`;
+          if (!workspace) {
+            return;
+          }
 
-            sessionList
-              .querySelectorAll<HTMLButtonElement>(".workspace-button")
-              .forEach((item) => {
-                item.classList.toggle(
-                  "selected",
-                  item.dataset.workspace === workspaceName,
-                );
-              });
-          });
+          openWorkspace(workspace);
         });
-        if (workspaceInput.value) {
-          sessionList
-            .querySelectorAll<HTMLButtonElement>(".workspace-button")
-            .forEach((button) => {
-              button.classList.toggle(
-                "selected",
-                button.dataset.workspace === workspaceInput.value,
-              );
-            });
-        }
+      });
+
+    sessionList
+      .querySelectorAll<HTMLButtonElement>(".workspace-session-button")
+      .forEach((button) => {
+        button.addEventListener("click", async () => {
+          const sessionName = button.dataset.session || "";
+          const workspaceName = button.dataset.workspace || "";
+
+          if (!sessionName || !workspaceName) {
+            return;
+          }
+
+          await openSession(sessionName, workspaceName);
+        });
+      });
+
+    updateNavigationSelection();
   } catch (error) {
     sessionList.innerHTML = `
       <p class="navigation-empty">
-        Unable to load sessions: ${escapeHtml(String(error))}
+        Unable to load navigation: ${escapeHtml(String(error))}
       </p>
     `;
   }
+}
+
+async function openSession(
+  sessionName: string,
+  workspaceName: string | null,
+): Promise<void> {
+  sessionInput.value = sessionName;
+  selectedSession.textContent = `Selected: ${sessionName}`;
+
+  if (workspaceName) {
+    workspaceInput.value = workspaceName;
+    selectedWorkspace.textContent = `Selected: ${workspaceName}`;
+  } else {
+    workspaceInput.value = "";
+    selectedWorkspace.textContent = "No workspace selected";
+  }
+
+  output.innerHTML = "";
+  emptyState.hidden = false;
+  updateNavigationSelection();
+  queryInput.value = "";
+
+  try {
+    const history = await loadSession(sessionName);
+
+    chatTurns.length = 0;
+    loadedSessionHtml = renderSessionHistory(history.messages);
+
+    output.innerHTML = loadedSessionHtml;
+    emptyState.hidden = true;
+  } catch (error) {
+    output.innerHTML = renderError(
+      error instanceof Error
+        ? error.message
+        : "Unable to load session",
+    );
+  }
+}
+
+function openWorkspace(workspace: WorkspaceNode): void {
+  workspaceInput.value = workspace.name;
+  selectedWorkspace.textContent = `Selected: ${workspace.name}`;
+
+  sessionInput.value = "";
+  selectedSession.textContent = "No session selected";
+
+  chatTurns.length = 0;
+  loadedSessionHtml = "";
+
+  output.innerHTML = renderWorkspaceOverview(workspace);
+  emptyState.hidden = true;
+
+  updateNavigationSelection();
+}
+
+function updateNavigationSelection(): void {
+  const selectedSessionName = sessionInput.value;
+  const selectedWorkspaceName = workspaceInput.value;
+
+  sessionList
+    .querySelectorAll<HTMLButtonElement>(".session-button")
+    .forEach((button) => {
+      button.classList.toggle(
+        "selected",
+        !selectedWorkspaceName &&
+          button.dataset.session === selectedSessionName,
+      );
+    });
+
+  sessionList
+    .querySelectorAll<HTMLButtonElement>(".workspace-button")
+    .forEach((button) => {
+      button.classList.toggle(
+        "selected",
+        button.dataset.workspace === selectedWorkspaceName,
+      );
+    });
+
+  sessionList
+    .querySelectorAll<HTMLButtonElement>(".workspace-session-button")
+    .forEach((button) => {
+      button.classList.toggle(
+        "selected",
+        button.dataset.workspace === selectedWorkspaceName &&
+          button.dataset.session === selectedSessionName,
+      );
+    });
 }
 
 void refreshNavigation();
@@ -209,6 +281,7 @@ form.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const session = sessionInput.value.trim();
+  const workspace = workspaceInput.value.trim();
   const query = queryInput.value.trim();
   const mode = modeSelect.value as QueryMode;
 
@@ -229,7 +302,12 @@ form.addEventListener("submit", async (event) => {
   }
 
   try {
-    const response = await runQuery(query, mode, session);
+    const response = await runQuery(
+      query,
+      mode,
+      session,
+      workspace,
+    );
 
     if (!response.ok) {
       output.innerHTML = renderError(response.error?.message ?? "Unknown error");
@@ -316,9 +394,14 @@ function renderWorkspaceNodes(workspaces: WorkspaceNode[]): string {
             ${workspace.sessions
               .map(
                 (session) => `
-                  <div class="workspace-session">
+                  <button
+                    type="button"
+                    class="workspace-session-button"
+                    data-workspace="${escapeAttr(workspace.name)}"
+                    data-session="${escapeAttr(session.name)}"
+                  >
                     ${escapeHtml(session.name)}
-                  </div>
+                  </button>
                 `,
               )
               .join("")}
@@ -395,6 +478,58 @@ function renderError(message: string): string {
     <section class="error-card">
       <h2>Request failed</h2>
       <p>${escapeHtml(message)}</p>
+    </section>
+  `;
+}
+
+function renderWorkspaceOverview(workspace: WorkspaceNode): string {
+  const sessions =
+    workspace.sessions.length > 0
+      ? `
+        <section class="workspace-overview-section">
+          <h2>Sessions</h2>
+          <ul>
+            ${workspace.sessions
+              .map(
+                (session) => `
+                  <li>${escapeHtml(session.name)}</li>
+                `,
+              )
+              .join("")}
+          </ul>
+        </section>
+      `
+      : "";
+
+  const files =
+    workspace.files.length > 0
+      ? `
+        <section class="workspace-overview-section">
+          <h2>Files</h2>
+          <ul class="workspace-file-list">
+            ${workspace.files
+              .map(
+                (file) => `
+                  <li>${escapeHtml(file.path)}</li>
+                `,
+              )
+              .join("")}
+          </ul>
+        </section>
+      `
+      : "";
+
+  const empty =
+    workspace.sessions.length === 0 && workspace.files.length === 0
+      ? `<p>This workspace does not contain any sessions or files.</p>`
+      : "";
+
+  return `
+    <section class="workspace-overview">
+      <h1>${escapeHtml(workspace.name)}</h1>
+      ${sessions}
+      ${files}
+      ${empty}
     </section>
   `;
 }

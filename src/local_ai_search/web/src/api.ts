@@ -14,6 +14,7 @@ export async function runQuery(
   query: string,
   mode: QueryMode,
   session?: string,
+  workspace?: string,
 ): Promise<QueryResponse> {
   const response = await fetch("/api/v1/query", {
     method: "POST",
@@ -24,6 +25,7 @@ export async function runQuery(
       query,
       mode,
       session: session || null,
+      workspace: workspace || null,
       limit: 5,
       max_chars: 4000,
     }),
