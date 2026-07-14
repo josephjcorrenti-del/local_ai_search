@@ -19,6 +19,10 @@ class QueryRequest(BaseModel):
     max_chars: int | None = None
 
 
+class WorkspaceCreateRequest(BaseModel):
+    name: str
+
+
 class ApiError(BaseModel):
     type: str
     message: str

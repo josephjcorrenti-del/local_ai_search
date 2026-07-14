@@ -2,16 +2,21 @@ from __future__ import annotations
 
 import time
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import HTMLResponse
 
 from local_ai_search import prompt_builder
 from local_ai_search.adapters import local_ai
-from local_ai_search.api.schemas import QueryRequest, QueryResponse
+from local_ai_search.api.schemas import (
+    QueryRequest,
+    QueryResponse,
+    WorkspaceCreateRequest,
+)
 from local_ai_search.evidence import resolve_evidence
 from local_ai_search.intent_gate import decide_intent
 from local_ai.memory import session_turns_get
 from local_ai_search.navigation import build_navigation_tree
+from local_ai.workspace import workspace_create, workspace_session_add
 
 router = APIRouter()
 
@@ -41,6 +46,31 @@ def config() -> dict:
 @router.get("/navigation")
 def navigation() -> dict:
     return build_navigation_tree()
+
+
+@router.post("/workspaces", status_code=201)
+def create_workspace(request: WorkspaceCreateRequest) -> dict:
+    try:
+        workspace = workspace_create(request.name)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+    return {
+        "ok": True,
+        "workspace": {
+            "name": workspace["name"],
+            "sessions": [
+                {"name": session_name}
+                for session_name in workspace.get("sessions", [])
+            ],
+            "files": [
+                {"path": path}
+                for path in workspace.get("files", [])
+            ],
+        },
+    }
 
 
 @router.get("/sessions/{session_name}")
@@ -100,6 +130,12 @@ def query(request: QueryRequest) -> QueryResponse:
                 evidence or {"results": []},
                 session_name=request.session,
             )
+
+            if request.workspace and request.session:
+                workspace_session_add(
+                    request.workspace,
+                    request.session,
+                )
 
     return QueryResponse(
         ok=True,

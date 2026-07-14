@@ -364,6 +364,12 @@ def test_api_query_passes_workspace_to_evidence_resolution(monkeypatch):
         lambda query, evidence, session_name=None: "workspace answer",
     )
 
+    monkeypatch.setattr(
+        routes,
+        "workspace_session_add",
+        lambda workspace_name, session_name: None,
+    )
+
     client = TestClient(create_app())
 
     response = client.post(
@@ -389,4 +395,159 @@ def test_api_query_passes_workspace_to_evidence_resolution(monkeypatch):
             "limit": 4,
             "max_chars": 2500,
         }
+    ]
+
+
+def test_api_create_workspace(monkeypatch):
+    from local_ai_search.api import routes
+
+    calls = []
+
+    def fake_workspace_create(name):
+        calls.append(name)
+        return {
+            "name": name,
+            "sessions": [],
+            "files": [],
+            "web_artifacts": [],
+            "notes": "",
+        }
+
+    monkeypatch.setattr(routes, "workspace_create", fake_workspace_create)
+
+    client = TestClient(create_app())
+
+    response = client.post(
+        "/api/v1/workspaces",
+        json={"name": "frontend-test"},
+    )
+
+    assert response.status_code == 201
+    assert response.json() == {
+        "ok": True,
+        "workspace": {
+            "name": "frontend-test",
+            "sessions": [],
+            "files": [],
+        },
+    }
+    assert calls == ["frontend-test"]
+
+
+def test_api_create_workspace_rejects_duplicate(monkeypatch):
+    from local_ai_search.api import routes
+
+    monkeypatch.setattr(
+        routes,
+        "workspace_create",
+        lambda name: (_ for _ in ()).throw(
+            RuntimeError(f"Workspace already exists: {name}")
+        ),
+    )
+
+    client = TestClient(create_app())
+
+    response = client.post(
+        "/api/v1/workspaces",
+        json={"name": "frontend-test"},
+    )
+
+    assert response.status_code == 409
+    assert response.json()["detail"] == (
+        "Workspace already exists: frontend-test"
+    )
+
+
+def test_api_create_workspace_rejects_invalid_name(monkeypatch):
+    from local_ai_search.api import routes
+
+    monkeypatch.setattr(
+        routes,
+        "workspace_create",
+        lambda name: (_ for _ in ()).throw(
+            ValueError("invalid workspace name")
+        ),
+    )
+
+    client = TestClient(create_app())
+
+    response = client.post(
+        "/api/v1/workspaces",
+        json={"name": "../bad"},
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "invalid workspace name"
+
+
+def test_api_integrated_query_adds_session_to_workspace(monkeypatch):
+    from local_ai_search.api import routes
+
+    calls = []
+
+    class Decision:
+        route = "model_only"
+        reason = "workspace selected"
+        needs_retrieval = False
+
+    monkeypatch.setattr(
+        routes,
+        "decide_intent",
+        lambda query, *, mode, session_name=None: Decision(),
+    )
+
+    monkeypatch.setattr(
+        routes,
+        "resolve_evidence",
+        lambda query, **kwargs: {
+            "retrieval_version": 1,
+            "artifact_type": "workspace_context",
+            "provider": "local_ai",
+            "workspace": kwargs["workspace_name"],
+            "results": [],
+        },
+    )
+
+    monkeypatch.setattr(
+        routes.prompt_builder,
+        "run_query",
+        lambda query, evidence, session_name=None: calls.append(
+            ("run_query", query, session_name)
+        ) or "workspace answer",
+    )
+
+    monkeypatch.setattr(
+        routes,
+        "workspace_session_add",
+        lambda workspace_name, session_name: calls.append(
+            ("workspace_session_add", workspace_name, session_name)
+        ),
+    )
+
+    client = TestClient(create_app())
+
+    response = client.post(
+        "/api/v1/query",
+        json={
+            "query": "what is this workspace about?",
+            "mode": "integrated",
+            "workspace": "middleware-test",
+            "session": "workspace-chat",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["answer"] == "workspace answer"
+
+    assert calls == [
+        (
+            "run_query",
+            "what is this workspace about?",
+            "workspace-chat",
+        ),
+        (
+            "workspace_session_add",
+            "middleware-test",
+            "workspace-chat",
+        ),
     ]

@@ -3,6 +3,7 @@ import type {
   QueryMode,
   QueryResponse,
   SessionHistory,
+  WorkspaceNode,
 } from "./types";
 
 export async function loadNavigation(): Promise<NavigationTree> {
@@ -42,4 +43,28 @@ export async function loadSession(name: string): Promise<SessionHistory> {
   }
 
   return response.json();
+}
+
+export async function createWorkspace(
+  name: string,
+): Promise<WorkspaceNode> {
+  const response = await fetch("/api/v1/workspaces", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ name }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      typeof data.detail === "string"
+        ? data.detail
+        : `workspace request failed: ${response.status}`,
+    );
+  }
+
+  return data.workspace;
 }

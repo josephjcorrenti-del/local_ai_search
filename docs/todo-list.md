@@ -198,6 +198,7 @@
 [ ] add workspace to FE
 [ ] add filesystem to FE
 [ ] verify the all results quality results are available in FE
+[ ] workspace first screen needs to be able to access files and sessions
 
 #### Answer quality behavior
 

@@ -1,12 +1,12 @@
 import { loadNavigation, loadSession, runQuery } from "./api";
 import { renderChat, type ChatTurn } from "./render-chat";
 import { renderSearch } from "./render-search";
-import type {
-  NavigationTree,
-  QueryMode,
-  SessionNode,
-  WorkspaceNode,
-} from "./types";
+import {
+  createWorkspace,
+  loadNavigation,
+  loadSession,
+  runQuery,
+} from "./api";
 import "./styles.css";
 
 const app = document.querySelector<HTMLDivElement>("#app");
@@ -104,6 +104,31 @@ async function refreshNavigation(): Promise<void> {
     const tree = await loadNavigation();
 
     sessionList.innerHTML = renderNavigation(tree);
+
+    const newWorkspaceButton =
+      sessionList.querySelector<HTMLButtonElement>("#new-workspace");
+
+    newWorkspaceButton?.addEventListener("click", async () => {
+      const name = window.prompt("New workspace name:");
+
+      if (!name?.trim()) {
+        return;
+      }
+
+      try {
+        const workspace = await createWorkspace(name.trim());
+
+        await refreshNavigation();
+        openWorkspace(workspace);
+      } catch (error) {
+        output.innerHTML = renderError(
+          error instanceof Error
+            ? error.message
+            : "Unable to create workspace",
+        );
+        emptyState.hidden = true;
+      }
+    });
 
     sessionList
       .querySelectorAll<HTMLButtonElement>(".session-button")
@@ -280,13 +305,26 @@ if (initialMode === "integrated" || initialMode === "ai_only" || initialMode ===
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
 
-  const session = sessionInput.value.trim();
+  let session = sessionInput.value.trim();
   const workspace = workspaceInput.value.trim();
   const query = queryInput.value.trim();
   const mode = modeSelect.value as QueryMode;
 
   if (!query) {
     return;
+  }
+
+  if (mode === "integrated" && workspace && !session) {
+    const name = window.prompt("New session name for this workspace:");
+
+    if (!name?.trim()) {
+      return;
+    }
+
+    session = name.trim();
+    sessionInput.value = session;
+    selectedSession.textContent = `New session: ${session}`;
+    updateNavigationSelection();
   }
 
   emptyState.hidden = true;
@@ -338,13 +376,23 @@ form.addEventListener("submit", async (event) => {
 
 function renderNavigation(tree: NavigationTree): string {
   return `
-    <section class="navigation-group">
-      ${renderSessionNodes(tree.sessions)}
+    <section class="navigation-group workspace-navigation">
+      <section class="navigation-heading">
+        <h2>Workspaces</h2>
+        <button
+          id="new-workspace"
+          type="button"
+          class="new-session-button"
+        >
+          +
+        </button>
+      </section>
+      ${renderWorkspaceNodes(tree.workspaces)}
     </section>
 
-    <section class="navigation-group workspace-navigation">
-      <h2>Workspaces</h2>
-      ${renderWorkspaceNodes(tree.workspaces)}
+    <section class="navigation-group session-navigation">
+      <h2>Sessions</h2>
+      ${renderSessionNodes(tree.sessions)}
     </section>
   `;
 }
