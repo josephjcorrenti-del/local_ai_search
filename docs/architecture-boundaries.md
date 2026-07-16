@@ -28,7 +28,17 @@ Future:
 /api/v1/config
 /api/v1/query
 ```
+ resource rules
+* stable API contracts
 
+The middleware must provide identical behavior for:
+
+* CLI
+* browser frontend
+* future desktop clients
+* future native clients
+
+No client should need to reproduce undocumented middleware behavior.
 ## Ownership
 
 `local_ai` owns:
@@ -79,3 +89,27 @@ works without requiring a frontend build step.
 * logs are the source of truth
 * no hidden retrieval
 * no hidden prompt injection
+
+## Backend ownership
+
+local_ai owns:
+
+* model interaction
+* prompt construction
+* shell UX
+* sessions
+* workspaces
+
+local_search owns:
+
+* retrieval
+* indexing
+* search providers
+* evidence generation
+
+local_ai_search owns:
+
+* orchestration
+* API
+* frontend hosting
+* integration contracts
