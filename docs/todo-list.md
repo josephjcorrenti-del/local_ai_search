@@ -195,7 +195,7 @@
 
 [x] add session to FE
 [x] order sessions by last message date
-[ ] add workspace to FE
+[x] add workspace to FE
 [ ] add filesystem to FE
 [ ] verify the all results quality results are available in FE
 [ ] workspace first screen needs to be able to access files and sessions
@@ -215,13 +215,72 @@
 [ ] improve follow-up intent/context linking
 [ ] prevent duplicate query submission
 
+### Phase 2.3.0.1 – Frontend and Client Boundary Refactor
+
+#### Documentation
+
+[x] document frontend, middleware, and backend ownership
+[x] document API consistency philosophy
+[x] document frontend interaction-state ownership
+[x] document backend ownership of defaults and validation
+[x] document client-independent behavior
+[x] document planning roles (Decisions / Phases / TBP)
+
+#### API consistency
+
+[ ] inventory all /api/v1 endpoint contracts
+[ ] normalize HTTP status behavior
+[ ] define one structured API error contract
+[ ] make frontend API request handling consistent
+[ ] reuse structured backend logging for API requests
+[ ] define bounded API request logging
+[ ] add API consistency contract tests
+
+#### Backend / middleware ownership
+
+[ ] remove duplicated backend defaults from frontend requests
+[ ] define canonical session/workspace query behavior
+[ ] define canonical default-session behavior
+[ ] define session/workspace creation behavior
+[ ] verify browser behavior is client-independent
+
+#### Frontend state
+
+[ ] introduce explicit resource-selection model
+[ ] stop using hidden DOM inputs as application state
+[ ] define application state ownership
+[ ] prepare state model for future filesystem integration
+
+#### Duplication review
+
+[ ] inventory duplicated frontend behavior
+[ ] consolidate shared rendering primitives
+[ ] consolidate evidence rendering
+[ ] consolidate HTML escaping
+[ ] consolidate debug/status rendering
+
+#### Responsibility extraction
+
+[ ] extract navigation ownership from app.ts
+[ ] extract session ownership from app.ts
+[ ] extract workspace ownership from app.ts
+[ ] extract query lifecycle from app.ts
+[ ] reduce app.ts to application composition
+
+#### Validation
+
+[ ] verify CLI behavior remains unchanged
+[ ] verify API contracts remain stable
+[ ] verify frontend behavior is unchanged
+[ ] verify future clients can rely solely on the API
+
 ### Phase 2.3.1 – Results quality in GUI
 
-[ ] expose session selection/input in GUI
+[x] expose session selection/input in GUI
 [ ] apply intent gate behavior to GUI queries
 [ ] display when retrieval was skipped
 [ ] display insufficient conversational context clearly
-[ ] expose workspace selection/input in GUI
+[x] expose workspace selection/input in GUI
 [ ] display workspace/session evidence in evidence summary
 [ ] display more search results
 [x] keep full search/debug evidence available behind verbose/raw/details
@@ -265,6 +324,10 @@
 [ ] make default query mode evidence-aware
 [ ] verify local ai search uses default session
 [ ] verify local ai acts like local ai search 
-[ ] NavigationTree needs to be editable on the front end
-[ ] Default session should probably create a new session
-[ ] not clear where new session is being created
+[ ] improve frontend navigation editing and resource organization
+[ ] support assigning or moving sessions into workspaces through an intuitive UI
+[ ] define initial chat behavior when the app opens without a selected session
+[ ] decide whether the first message uses the default session, creates a new session, or prompts for a session
+[ ] improve session and workspace creation UX
+[ ] make it clear where a newly created session or workspace appears
+[ ] replace bulky prompt-based creation flows with an integrated frontend interaction

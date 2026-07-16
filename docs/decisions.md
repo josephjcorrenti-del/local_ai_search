@@ -1,5 +1,37 @@
 # local_ai_search Decisions
 
+## 2026-07-26 - Documentation roles
+
+Project documentation has three distinct planning roles:
+
+- Decisions answer: “Why have we chosen this direction?”
+- Numbered phases answer: “What are we intentionally working on now?”
+- TBP / Later answers: “What should we remember even if it is not the right time?”
+
+TBP is intentionally informal.
+
+It is a capture area for:
+
+- ideas discovered while coding
+- questions that need later investigation
+- possible defects
+- usability observations
+- work that was previously planned but has been deprioritized
+- tasks that may return to an active phase as the project evolves
+
+TBP items do not need the same structure or polish as active phase tasks.
+
+Ideas may move:
+
+- from TBP into an active phase
+- from an active phase back into TBP
+- between phases as architecture and priorities change
+- out of the plan when they are no longer relevant
+
+TBP should not be removed merely because it is unstructured or because its items are not currently scheduled.
+
+When a TBP item becomes active work, it should be reviewed and rewritten as needed before or during promotion into a numbered phase.
+
 ## 2026-06-04 - Project name and purpose
 
 `local_ai_search` is a new integration project that combines `local_ai` and `local_search` into an explicit AI + search workflow.
@@ -421,3 +453,120 @@ Examples:
 However, existing resources are not automatically sufficient evidence.
 
 When an answer depends on facts that may have changed, `local_ai_search` should consider the age and relevance of local evidence before relying on it. Older local evidence may be useful as context, but the prompt_builder should be able to seek newer or more relevant evidence when freshness matters.
+
+## 2026-07-15 - Frontend responsibility boundary
+
+The frontend owns browser presentation and interaction state.
+
+The frontend may:
+
+- render navigation and content
+- track the currently selected resource
+- collect user input
+- display loading and errors
+- call versioned API endpoints
+
+The frontend must not:
+
+- perform retrieval
+- construct evidence
+- construct AI prompts
+- own session or workspace persistence
+- define canonical resource-validity rules
+- duplicate backend configuration defaults
+
+The API must validate all request context independently of the frontend.
+
+## 2026-07-15 - Frontend state model
+
+Session, workspace, and future file selection should use one explicit resource-selection model.
+
+DOM inputs may mirror selection for form submission, but they are not the source of truth.
+
+Reason:
+
+- prevents contradictory session/workspace state
+- centralizes selection transitions
+- prepares for filesystem navigation
+- keeps rendering contexts independent from resource behavior
+
+## 2026-07-15 - Frontend module ownership
+
+The frontend remains plain TypeScript without a framework.
+
+Target responsibilities:
+
+- app.ts: composition and startup
+- navigation.ts: navigation rendering and navigation events
+- session.ts: session-specific presentation and transitions
+- workspace.ts: workspace-specific presentation and transitions
+- query.ts: query form lifecycle
+- api.ts: HTTP boundary only
+
+Modules should remain small and behavior-preserving.
+A framework or state library requires a separate decision.
+
+## 2026-07-15 - Middleware owns canonical defaults
+
+Frontend requests should omit configurable values unless the user explicitly overrides them.
+
+Defaults such as evidence limits, character limits, default mode, and default session are resolved by backend configuration.
+
+The API may expose optional override fields for advanced clients.
+
+## 2026-07-15 - Resource creation and selection rules
+
+The owning backend defines canonical session and workspace creation behavior.
+
+The frontend may prompt for names and present choices, but it must use API behavior rather than invent persistence semantics.
+
+All frontend-only validation must also be validated by the API.
+
+### 2026-07-16 - API logging and diagnostics
+
+The API should reuse the existing structured NDJSON logging infrastructure.
+
+API requests should follow the existing start, done, and error event pattern
+and include a request or run identifier, route, method, outcome, status code,
+and elapsed time.
+
+Client-facing errors must remain stable and safe. Internal exception details,
+tracebacks, and diagnostic context belong in structured logs rather than API
+responses.
+
+Request logging must be bounded and must not blindly record raw request bodies,
+evidence packages, file contents, secrets, or other large or sensitive values.
+
+A request identifier may later be included in structured API errors so a client
+failure can be matched to backend logs.
+
+## 2026-07-16 - Client-independent API behavior
+
+The versioned local API must provide complete client-independent behavior.
+
+Any rule required for a valid query or resource operation must be defined and
+enforced by the API middleware rather than existing only in frontend code.
+
+Browser, native, desktop, command-line, and future clients may present different
+interaction flows, but clients using the API must receive consistent:
+
+- request validation
+- configured defaults
+- session and workspace rules
+- resource operation semantics
+- orchestration behavior
+- HTTP status behavior
+- structured errors
+
+A client must not need to inspect or reproduce the TypeScript frontend to use
+the API correctly.
+
+The CLI may continue to call shared Python behavior directly, but its observable
+domain behavior should remain aligned with the API.
+
+Reason:
+
+- keeps the frontend replaceable
+- supports future native clients
+- prevents conflicting client implementations
+- keeps canonical behavior in one inspectable layer
