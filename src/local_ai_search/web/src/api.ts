@@ -6,18 +6,81 @@ import type {
   WorkspaceNode,
 } from "./types";
 
-export async function loadNavigation(): Promise<NavigationTree> {
-  const response = await fetch("/api/v1/navigation");
-  return response.json();
+type ApiErrorBody = {
+  ok: false;
+  error: {
+    type: string;
+    message: string;
+  };
+};
+
+type WorkspaceCreateResponse = {
+  ok: true;
+  workspace: WorkspaceNode;
+};
+
+function isApiErrorBody(value: unknown): value is ApiErrorBody {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const candidate = value as {
+    ok?: unknown;
+    error?: {
+      type?: unknown;
+      message?: unknown;
+    };
+  };
+
+  return (
+    candidate.ok === false &&
+    typeof candidate.error === "object" &&
+    candidate.error !== null &&
+    typeof candidate.error.type === "string" &&
+    typeof candidate.error.message === "string"
+  );
 }
 
-export async function runQuery(
+async function requestJson<T>(
+  url: string,
+  options?: RequestInit,
+): Promise<T> {
+  const response = await fetch(url, options);
+
+  let data: unknown;
+
+  try {
+    data = await response.json();
+  } catch {
+    throw new Error(
+      response.ok
+        ? "The server returned an invalid response."
+        : `Request failed with status ${response.status}.`,
+    );
+  }
+
+  if (!response.ok) {
+    if (isApiErrorBody(data)) {
+      throw new Error(data.error.message);
+    }
+
+    throw new Error(`Request failed with status ${response.status}.`);
+  }
+
+  return data as T;
+}
+
+export function loadNavigation(): Promise<NavigationTree> {
+  return requestJson<NavigationTree>("/api/v1/navigation");
+}
+
+export function runQuery(
   query: string,
   mode: QueryMode,
   session?: string,
   workspace?: string,
 ): Promise<QueryResponse> {
-  const response = await fetch("/api/v1/query", {
+  return requestJson<QueryResponse>("/api/v1/query", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -27,44 +90,29 @@ export async function runQuery(
       mode,
       session: session || null,
       workspace: workspace || null,
-      limit: 5,
-      max_chars: 4000,
     }),
   });
-
-  return response.json();
 }
 
-export async function loadSession(name: string): Promise<SessionHistory> {
-  const response = await fetch(`/api/v1/sessions/${encodeURIComponent(name)}`);
-
-  if (!response.ok) {
-    throw new Error(`session request failed: ${response.status}`);
-  }
-
-  return response.json();
+export function loadSession(name: string): Promise<SessionHistory> {
+  return requestJson<SessionHistory>(
+    `/api/v1/sessions/${encodeURIComponent(name)}`,
+  );
 }
 
 export async function createWorkspace(
   name: string,
 ): Promise<WorkspaceNode> {
-  const response = await fetch("/api/v1/workspaces", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
+  const response = await requestJson<WorkspaceCreateResponse>(
+    "/api/v1/workspaces",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ name }),
     },
-    body: JSON.stringify({ name }),
-  });
+  );
 
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(
-      typeof data.detail === "string"
-        ? data.detail
-        : `workspace request failed: ${response.status}`,
-    );
-  }
-
-  return data.workspace;
+  return response.workspace;
 }

@@ -1,13 +1,11 @@
-import { loadNavigation, loadSession, runQuery } from "./api";
-import { renderChat, type ChatTurn } from "./render-chat";
-import { renderSearch } from "./render-search";
 import {
   createWorkspace,
   loadNavigation,
   loadSession,
   runQuery,
 } from "./api";
-import "./styles.css";
+import { renderChat, type ChatTurn } from "./render-chat";
+import { renderSearch } from "./render-search";
 
 const app = document.querySelector<HTMLDivElement>("#app");
 
@@ -346,11 +344,6 @@ form.addEventListener("submit", async (event) => {
       session,
       workspace,
     );
-
-    if (!response.ok) {
-      output.innerHTML = renderError(response.error?.message ?? "Unknown error");
-      return;
-    }
 
     if (response.mode === "web_only") {
       output.innerHTML = renderSearch(response);

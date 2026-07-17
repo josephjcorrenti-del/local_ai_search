@@ -231,7 +231,7 @@
 [x] inventory all /api/v1 endpoint contracts
 [x] normalize HTTP status behavior
 [x] define one structured API error contract
-[ ] make frontend API request handling consistent
+[x] make frontend API request handling consistent
 [ ] prepare API routes for shared request logging
 [ ] define bounded API request logging
 [ ] add API consistency contract tests
