@@ -453,9 +453,13 @@ def test_api_create_workspace_rejects_duplicate(monkeypatch):
     )
 
     assert response.status_code == 409
-    assert response.json()["detail"] == (
-        "Workspace already exists: frontend-test"
-    )
+    assert response.json() == {
+        "ok": False,
+        "error": {
+            "type": "workspace_conflict",
+            "message": "Workspace already exists: frontend-test",
+        },
+    }
 
 
 def test_api_create_workspace_rejects_invalid_name(monkeypatch):
@@ -477,7 +481,13 @@ def test_api_create_workspace_rejects_invalid_name(monkeypatch):
     )
 
     assert response.status_code == 400
-    assert response.json()["detail"] == "invalid workspace name"
+    assert response.json() == {
+        "ok": False,
+        "error": {
+            "type": "invalid_workspace",
+            "message": "invalid workspace name",
+        },
+    }
 
 
 def test_api_integrated_query_adds_session_to_workspace(monkeypatch):
@@ -551,3 +561,65 @@ def test_api_integrated_query_adds_session_to_workspace(monkeypatch):
             "workspace-chat",
         ),
     ]
+
+
+def test_api_validation_error_uses_structured_contract():
+    client = TestClient(create_app())
+
+    response = client.post(
+        "/api/v1/query",
+        json={
+            "query": "what is sqlite?",
+            "mode": "unsupported",
+        },
+    )
+
+    assert response.status_code == 422
+    assert response.json() == {
+        "ok": False,
+        "error": {
+            "type": "validation_error",
+            "message": "The request is invalid.",
+        },
+    }
+
+
+def test_api_missing_route_uses_structured_contract():
+    client = TestClient(create_app())
+
+    response = client.get("/api/v1/does-not-exist")
+
+    assert response.status_code == 404
+    assert response.json() == {
+        "ok": False,
+        "error": {
+            "type": "not_found",
+            "message": "Not Found",
+        },
+    }
+
+
+def test_api_unexpected_error_uses_structured_contract(monkeypatch):
+    from local_ai_search.api import routes
+
+    monkeypatch.setattr(
+        routes,
+        "build_navigation_tree",
+        lambda: (_ for _ in ()).throw(RuntimeError("private details")),
+    )
+
+    client = TestClient(
+        create_app(),
+        raise_server_exceptions=False,
+    )
+
+    response = client.get("/api/v1/navigation")
+
+    assert response.status_code == 500
+    assert response.json() == {
+        "ok": False,
+        "error": {
+            "type": "internal_error",
+            "message": "The request could not be completed.",
+        },
+    }

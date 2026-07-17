@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import time
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from fastapi.responses import HTMLResponse
 
 from local_ai_search import prompt_builder
 from local_ai_search.adapters import local_ai
+from local_ai_search.api.errors import ApiException
 from local_ai_search.api.schemas import (
     QueryRequest,
     QueryResponse,
@@ -53,9 +54,17 @@ def create_workspace(request: WorkspaceCreateRequest) -> dict:
     try:
         workspace = workspace_create(request.name)
     except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
+        raise ApiException(
+            status_code=400,
+            error_type="invalid_workspace",
+            message=str(exc),
+        ) from exc
     except RuntimeError as exc:
-        raise HTTPException(status_code=409, detail=str(exc)) from exc
+        raise ApiException(
+            status_code=409,
+            error_type="workspace_conflict",
+            message=str(exc),
+        ) from exc
 
     return {
         "ok": True,

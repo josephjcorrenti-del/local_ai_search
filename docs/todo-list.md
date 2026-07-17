@@ -228,11 +228,11 @@
 
 #### API consistency
 
-[ ] inventory all /api/v1 endpoint contracts
-[ ] normalize HTTP status behavior
-[ ] define one structured API error contract
+[x] inventory all /api/v1 endpoint contracts
+[x] normalize HTTP status behavior
+[x] define one structured API error contract
 [ ] make frontend API request handling consistent
-[ ] reuse structured backend logging for API requests
+[ ] prepare API routes for shared request logging
 [ ] define bounded API request logging
 [ ] add API consistency contract tests
 
@@ -331,3 +331,4 @@
 [ ] improve session and workspace creation UX
 [ ] make it clear where a newly created session or workspace appears
 [ ] replace bulky prompt-based creation flows with an integrated frontend interaction
+[ ] reuse structured backend logging for API requests
