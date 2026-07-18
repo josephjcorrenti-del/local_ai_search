@@ -232,7 +232,7 @@
 [x] normalize HTTP status behavior
 [x] define one structured API error contract
 [x] make frontend API request handling consistent
-[ ] prepare API routes for shared request logging
+[x] prepare API routes for shared request logging
 [ ] define bounded API request logging
 [ ] add API consistency contract tests
 

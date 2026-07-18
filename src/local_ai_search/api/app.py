@@ -7,11 +7,14 @@ from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from local_ai_search.api.errors import register_api_exception_handlers
+from local_ai_search.api.middleware import register_api_middleware
 from local_ai_search.api.routes import router
 
 
 def create_app() -> FastAPI:
     app = FastAPI(title="local_ai_search API", version="0.1")
+
+    register_api_middleware(app)
     register_api_exception_handlers(app)
 
     app.include_router(router, prefix="/api/v1")
