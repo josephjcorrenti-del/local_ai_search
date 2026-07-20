@@ -15,8 +15,9 @@ from local_ai_search.api.schemas import (
 )
 from local_ai_search.evidence import resolve_evidence
 from local_ai_search.intent_gate import decide_intent
-from local_ai.memory import session_turns_get
 from local_ai_search.navigation import build_navigation_tree
+from local_ai.config import CONFIG
+from local_ai.memory import session_turns_get
 from local_ai.workspace import workspace_create, workspace_session_add
 
 router = APIRouter()
@@ -98,10 +99,13 @@ def query(request: QueryRequest) -> QueryResponse:
     evidence = None
     accounting = None
 
+    session_name = request.session or CONFIG.default_session_name
+    workspace_name = request.workspace
+
     decision = decide_intent(
         request.query,
         mode=request.mode,
-        session_name=request.session,
+        session_name=session_name,
     )
 
     intent = {
@@ -122,8 +126,8 @@ def query(request: QueryRequest) -> QueryResponse:
         evidence = resolve_evidence(
             request.query,
             decision=decision,
-            session_name=request.session,
-            workspace_name=request.workspace,
+            session_name=session_name,
+            workspace_name=workspace_name,
             limit=request.limit,
             max_chars=request.max_chars,
         )
@@ -137,13 +141,13 @@ def query(request: QueryRequest) -> QueryResponse:
             answer = prompt_builder.run_query(
                 request.query,
                 evidence or {"results": []},
-                session_name=request.session,
+                session_name=session_name,
             )
 
-            if request.workspace and request.session:
+            if workspace_name:
                 workspace_session_add(
-                    request.workspace,
-                    request.session,
+                    workspace_name,
+                    session_name,
                 )
 
     return QueryResponse(

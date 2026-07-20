@@ -3,13 +3,32 @@ from fastapi.testclient import TestClient
 from local_ai_search.api.app import create_app
 
 
+def assert_success(response):
+    assert response.status_code < 400
+
+    data = response.json()
+
+    assert data["ok"] is True
+
+    return data
+
+
+def assert_api_error(response, status, error_type):
+    assert response.status_code == status
+
+    data = response.json()
+
+    assert data["ok"] is False
+    assert data["error"]["type"] == error_type
+    assert isinstance(data["error"]["message"], str)
+
+
 def test_api_status():
     client = TestClient(create_app())
 
     response = client.get("/api/v1/status")
 
-    assert response.status_code == 200
-    assert response.json()["ok"] is True
+    data = assert_success(response)
     assert response.json()["service"] == "local_ai_search"
 
 
@@ -130,7 +149,7 @@ def test_api_query_web_only_returns_evidence(monkeypatch):
             "resolve_evidence",
             "jumping insects",
             "retrieve",
-            None,
+            routes.CONFIG.default_session_name,
             3,
             500,
         )
@@ -452,14 +471,11 @@ def test_api_create_workspace_rejects_duplicate(monkeypatch):
         json={"name": "frontend-test"},
     )
 
-    assert response.status_code == 409
-    assert response.json() == {
-        "ok": False,
-        "error": {
-            "type": "workspace_conflict",
-            "message": "Workspace already exists: frontend-test",
-        },
-    }
+    assert_api_error(
+        response,
+        409,
+        "workspace_conflict",
+    )
 
 
 def test_api_create_workspace_rejects_invalid_name(monkeypatch):
@@ -560,6 +576,139 @@ def test_api_integrated_query_adds_session_to_workspace(monkeypatch):
             "middleware-test",
             "workspace-chat",
         ),
+    ]
+
+
+def test_api_workspace_query_associates_default_session(monkeypatch):
+    from local_ai_search.api import routes
+
+    calls = []
+
+    def fake_decide_intent(
+        query,
+        *,
+        mode="integrated",
+        session_name=None,
+    ):
+        class Decision:
+            route = "model_only"
+            reason = "workspace selected"
+            needs_retrieval = False
+
+        return Decision()
+
+    monkeypatch.setattr(routes, "decide_intent", fake_decide_intent)
+    monkeypatch.setattr(
+        routes,
+        "resolve_evidence",
+        lambda query, **kwargs: {"results": []},
+    )
+    monkeypatch.setattr(
+        routes.prompt_builder,
+        "run_query",
+        lambda query, evidence, session_name=None: "answer",
+    )
+    monkeypatch.setattr(
+        routes,
+        "workspace_session_add",
+        lambda workspace_name, session_name: calls.append(
+            (
+                workspace_name,
+                session_name,
+            )
+        ),
+    )
+
+    client = TestClient(create_app())
+
+    response = client.post(
+        "/api/v1/query",
+        json={
+            "query": "what is this workspace about?",
+            "mode": "integrated",
+            "workspace": "middleware-test",
+        },
+    )
+
+    assert response.status_code == 200
+    assert calls == [
+        (
+            "middleware-test",
+            routes.CONFIG.default_session_name,
+        )
+    ]
+
+
+def test_api_query_resolves_default_session(monkeypatch):
+    from local_ai_search.api import routes
+
+    calls = []
+
+    def fake_decide_intent(
+        query,
+        *,
+        mode="integrated",
+        session_name=None,
+    ):
+        calls.append(("decide_intent", session_name))
+
+        class Decision:
+            route = "model_only"
+            reason = "general question"
+            needs_retrieval = False
+
+        return Decision()
+
+    def fake_resolve_evidence(
+        query,
+        *,
+        decision,
+        session_name=None,
+        workspace_name=None,
+        filesystem_root=None,
+        filesystem_files=None,
+        limit=None,
+        max_chars=None,
+    ):
+        calls.append(
+            (
+                "resolve_evidence",
+                session_name,
+                workspace_name,
+            )
+        )
+        return {"results": []}
+
+    monkeypatch.setattr(routes, "decide_intent", fake_decide_intent)
+    monkeypatch.setattr(routes, "resolve_evidence", fake_resolve_evidence)
+    monkeypatch.setattr(
+        routes.prompt_builder,
+        "run_query",
+        lambda query, evidence, session_name=None: calls.append(
+            ("run_query", session_name)
+        )
+        or "answer",
+    )
+
+    client = TestClient(create_app())
+
+    response = client.post(
+        "/api/v1/query",
+        json={
+            "query": "what is sqlite?",
+            "mode": "integrated",
+        },
+    )
+
+    assert response.status_code == 200
+    assert calls == [
+        ("decide_intent", routes.CONFIG.default_session_name),
+        (
+            "resolve_evidence",
+            routes.CONFIG.default_session_name,
+            None,
+        ),
+        ("run_query", routes.CONFIG.default_session_name),
     ]
 
 

@@ -234,13 +234,13 @@
 [x] make frontend API request handling consistent
 [x] prepare API routes for shared request logging
 [ ] define bounded API request logging
-[ ] add API consistency contract tests
+[x] add API consistency contract tests
 
 #### Backend / middleware ownership
 
-[ ] remove duplicated backend defaults from frontend requests
-[ ] define canonical session/workspace query behavior
-[ ] define canonical default-session behavior
+[x] remove duplicated backend defaults from frontend requests
+[x] define canonical session/workspace query behavior
+[x] define canonical default-session behavior
 [ ] define session/workspace creation behavior
 [ ] verify browser behavior is client-independent
 
