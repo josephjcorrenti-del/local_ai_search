@@ -404,6 +404,12 @@ def test_api_query_passes_workspace_to_evidence_resolution(monkeypatch):
     )
 
     assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["session"] == "workspace-test"
+    assert data["workspace"] == "local_ai_search"
+
     assert response.json()["answer"] == "workspace answer"
 
     assert calls == [
@@ -564,6 +570,8 @@ def test_api_integrated_query_adds_session_to_workspace(monkeypatch):
 
     assert response.status_code == 200
     assert response.json()["answer"] == "workspace answer"
+    assert response.json()["session"] == "workspace-chat"
+    assert response.json()["workspace"] == "middleware-test"
 
     assert calls == [
         (

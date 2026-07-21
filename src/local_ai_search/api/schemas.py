@@ -42,6 +42,10 @@ class QueryResponse(BaseModel):
     ok: bool
     mode: QueryMode
     query: str
+
+    session: str
+    workspace: str | None = None
+
     answer: str | None = None
     evidence: dict[str, Any] | None = None
     accounting: dict[str, Any] | None = None

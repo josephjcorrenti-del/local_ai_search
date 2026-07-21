@@ -241,7 +241,8 @@
 [x] remove duplicated backend defaults from frontend requests
 [x] define canonical session/workspace query behavior
 [x] define canonical default-session behavior
-[ ] define session/workspace creation behavior
+[x] verify browser behavior is client-independent
+[x] move session creation policy into the backend
 [ ] verify browser behavior is client-independent
 
 #### Frontend state

@@ -81,3 +81,17 @@ export type SessionHistory = {
   name: string;
   messages: SessionMessage[];
 };
+
+return QueryResponse(
+    ok=True,
+    mode=request.mode,
+    query=request.query,
+    session=session_name,
+    workspace=workspace_name,
+    answer=answer,
+    evidence=evidence,
+    accounting=accounting,
+    elapsed_ms=int((time.perf_counter() - started) * 1000),
+    intent=intent,
+    retrieval=retrieval,
+)

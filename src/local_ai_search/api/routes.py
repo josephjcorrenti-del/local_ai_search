@@ -154,6 +154,8 @@ def query(request: QueryRequest) -> QueryResponse:
         ok=True,
         mode=request.mode,
         query=request.query,
+        session=session_name,
+        workspace=workspace_name,
         answer=answer,
         evidence=evidence,
         accounting=accounting,

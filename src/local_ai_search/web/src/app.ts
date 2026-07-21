@@ -312,19 +312,6 @@ form.addEventListener("submit", async (event) => {
     return;
   }
 
-  if (mode === "integrated" && workspace && !session) {
-    const name = window.prompt("New session name for this workspace:");
-
-    if (!name?.trim()) {
-      return;
-    }
-
-    session = name.trim();
-    sessionInput.value = session;
-    selectedSession.textContent = `New session: ${session}`;
-    updateNavigationSelection();
-  }
-
   emptyState.hidden = true;
 
   if (mode === "web_only") {
@@ -344,6 +331,17 @@ form.addEventListener("submit", async (event) => {
       session,
       workspace,
     );
+
+  sessionInput.value = response.session;
+  workspaceInput.value = response.workspace ?? "";
+
+  selectedSession.textContent = `Selected: ${response.session}`;
+
+  selectedWorkspace.textContent = response.workspace
+    ? `Selected: ${response.workspace}`
+    : "No workspace selected";
+
+  updateNavigationSelection();
 
     if (response.mode === "web_only") {
       output.innerHTML = renderSearch(response);
