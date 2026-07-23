@@ -234,6 +234,7 @@
 [x] make frontend API request handling consistent
 [x] prepare API routes for shared request logging
 [ ] define bounded API request logging
+[ ] reuse structured backend logging for API requests
 [x] add API consistency contract tests
 
 #### Backend / middleware ownership
@@ -244,6 +245,7 @@
 [x] verify browser behavior is client-independent
 [x] move session creation policy into the backend
 [ ] verify browser behavior is client-independent
+[ ] verify local_ai remains the canonical owner of session lifecycle
 
 #### Frontend state
 
@@ -332,4 +334,20 @@
 [ ] improve session and workspace creation UX
 [ ] make it clear where a newly created session or workspace appears
 [ ] replace bulky prompt-based creation flows with an integrated frontend interaction
-[ ] reuse structured backend logging for API requests
+
+### Session lifecycle and explicit creation
+
+- [ ] add a first-class `session_create()` operation to `local_ai`
+- [ ] keep session-name normalization and storage validation owned by `local_ai`
+- [ ] inspect supported filesystem constraints before defining invalid characters
+- [ ] trim session names before validation and duplicate checks
+- [ ] preserve case-sensitive, globally unique session names
+- [ ] reserve only the exact configured default-session name
+- [ ] persist explicitly created empty sessions with existing session metadata
+- [ ] add `POST /api/v1/sessions` to expose explicit empty-session creation
+- [ ] return `201` with the canonical trimmed session name
+- [ ] make query-created sessions use the same lifecycle rules
+- [ ] return consistent structured errors for invalid or duplicate session names
+- [ ] keep workspace references separate from session ownership
+- [ ] define recoverable behavior when session creation succeeds but workspace association fails
+- [ ] add lifecycle tests in `local_ai` and API contract tests in `local_ai_search`

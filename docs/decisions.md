@@ -44,6 +44,16 @@ It is not phase 2 of either existing project.
 
 `local_ai_search` owns the integration boundary between the two.
 
+## 2026-07-22 - Domain ownership
+
+Each functional domain has one canonical owner.
+
+Other components may expose or consume that functionality, but they do not
+reimplement its rules.
+
+This keeps behavior consistent, reduces duplication, and allows multiple
+clients to share the same implementation.
+
 ## 2026-06-04 - Command name
 
 The command will be:
@@ -522,6 +532,12 @@ The frontend may prompt for names and present choices, but it must use API behav
 
 All frontend-only validation must also be validated by the API.
 
+2026-07-22 - The owning backend is responsible for canonical normalization of resource
+identifiers before validation.
+
+Examples include trimming session names and applying configured default
+resource names.
+
 ### 2026-07-16 - API logging and diagnostics
 
 The API should reuse the existing structured NDJSON logging infrastructure.
@@ -570,3 +586,41 @@ Reason:
 - supports future native clients
 - prevents conflicting client implementations
 - keeps canonical behavior in one inspectable layer
+
+2026-07-16 - The owning backend defines explicit resource creation semantics.
+
+Clients request creation.
+
+Clients do not create resources locally.
+
+## 2026-07-22 - Session lifecycle ownership
+
+`local_ai` owns the complete session lifecycle.
+
+This includes:
+
+- session creation
+- session persistence
+- session normalization
+- session validation
+- session repair
+- session migration
+
+`local_ai_search` exposes session operations through its API but does not
+implement an independent session model or validation rules.
+
+Reason:
+
+Keeping one implementation ensures identical behavior across the CLI,
+shell, API, and future clients.
+
+## 2026-07-22 - User experience philosophy
+
+The system should avoid hard failures whenever behavior can be made
+deterministic and safe.
+
+When user intent is clear, the backend should prefer completing the
+requested operation over rejecting it.
+
+Validation should reject only operations that are unsafe,
+ambiguous, or cannot be persisted correctly.
