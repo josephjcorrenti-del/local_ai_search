@@ -32,23 +32,6 @@ def test_api_status():
     assert response.json()["service"] == "local_ai_search"
 
 
-def test_api_query_contract():
-    client = TestClient(create_app())
-
-    response = client.post(
-        "/api/v1/query",
-        json={"query": "what is sqlite?", "mode": "ai_only"},
-    )
-
-    assert response.status_code == 200
-
-    data = response.json()
-    assert data["ok"] is True
-    assert data["mode"] == "integrated"
-    assert data["query"] == "what is sqlite?"
-    assert "elapsed_ms" in data
-
-
 def test_api_query_ai_only_calls_local_ai(monkeypatch):
     from local_ai_search.api import routes
 
@@ -75,7 +58,9 @@ def test_api_query_ai_only_calls_local_ai(monkeypatch):
     assert data["query"] == "what is sqlite?"
     assert data["answer"] == "sqlite answer"
     assert data["evidence"] is None
+    assert isinstance(data["elapsed_ms"], int | float)
     assert calls == ["what is sqlite?"]
+
 
 def test_api_query_web_only_returns_evidence(monkeypatch):
     from local_ai_search.api import routes
@@ -227,36 +212,6 @@ def test_api_query_integrated_returns_answer_and_evidence(monkeypatch):
         ("resolve_evidence", "what is sqlite?"),
         ("run_query", "what is sqlite?", evidence),
     ]
-
-
-def test_api_query_contract(monkeypatch):
-    from local_ai_search.api import routes
-
-    monkeypatch.setattr(routes.local_ai, "ask", lambda prompt: "test answer")
-
-    client = TestClient(create_app())
-
-    response = client.post(
-        "/api/v1/query",
-        json={"query": "what is sqlite?", "mode": "ai_only"},
-    )
-
-    assert response.status_code == 200
-
-    data = response.json()
-    assert data["ok"] is True
-    assert data["mode"] == "ai_only"
-    assert data["query"] == "what is sqlite?"
-    assert "elapsed_ms" in data
-
-
-def test_search_route_exists():
-    client = TestClient(create_app())
-
-    response = client.get("/search/")
-
-    assert response.status_code == 200
-    assert "local_ai_search" in response.text
 
 
 def test_search_route_exists():
@@ -638,7 +593,11 @@ def test_api_workspace_query_associates_default_session(monkeypatch):
         },
     )
 
-    assert response.status_code == 200
+    data = assert_success(response)
+
+    assert data["session"] == routes.CONFIG.default_session_name
+    assert data["workspace"] == "middleware-test"
+
     assert calls == [
         (
             "middleware-test",
@@ -708,7 +667,11 @@ def test_api_query_resolves_default_session(monkeypatch):
         },
     )
 
-    assert response.status_code == 200
+    data = assert_success(response)
+
+    assert data["session"] == routes.CONFIG.default_session_name
+    assert data["workspace"] is None
+
     assert calls == [
         ("decide_intent", routes.CONFIG.default_session_name),
         (
@@ -780,3 +743,81 @@ def test_api_unexpected_error_uses_structured_contract(monkeypatch):
             "message": "The request could not be completed.",
         },
     }
+
+
+def test_api_query_resolves_default_mode_without_client_help(monkeypatch):
+    from local_ai_search.api import routes
+
+    calls = []
+
+    class Decision:
+        route = "model_only"
+        reason = "general question"
+        needs_retrieval = False
+
+    def fake_decide_intent(
+        query,
+        *,
+        mode="integrated",
+        session_name=None,
+    ):
+        calls.append(
+            (
+                "decide_intent",
+                mode,
+                session_name,
+            )
+        )
+        return Decision()
+
+    monkeypatch.setattr(routes, "decide_intent", fake_decide_intent)
+    monkeypatch.setattr(
+        routes,
+        "resolve_evidence",
+        lambda query, **kwargs: {"results": []},
+    )
+    monkeypatch.setattr(
+        routes.prompt_builder,
+        "run_query",
+        lambda query, evidence, session_name=None: "answer",
+    )
+
+    client = TestClient(create_app())
+
+    response = client.post(
+        "/api/v1/query",
+        json={
+            "query": "what is sqlite?",
+        },
+    )
+
+    data = assert_success(response)
+
+    assert data["mode"] == "integrated"
+    assert data["session"] == routes.CONFIG.default_session_name
+    assert data["workspace"] is None
+    assert data["answer"] == "answer"
+
+    assert calls == [
+        (
+            "decide_intent",
+            "integrated",
+            routes.CONFIG.default_session_name,
+        )
+    ]
+
+def test_api_missing_query_uses_structured_validation_contract():
+    client = TestClient(create_app())
+
+    response = client.post(
+        "/api/v1/query",
+        json={
+            "mode": "integrated",
+        },
+    )
+
+    assert_api_error(
+        response,
+        422,
+        "validation_error",
+    )

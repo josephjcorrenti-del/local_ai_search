@@ -244,8 +244,7 @@
 [x] define canonical default-session behavior
 [x] verify browser behavior is client-independent
 [x] move session creation policy into the backend
-[ ] verify browser behavior is client-independent
-[ ] verify local_ai remains the canonical owner of session lifecycle
+[x] verify browser behavior is client-independent
 
 #### Frontend state
 
@@ -269,6 +268,10 @@
 [ ] extract workspace ownership from app.ts
 [ ] extract query lifecycle from app.ts
 [ ] reduce app.ts to application composition
+
+#### local_ai_search should not be doing local_ais job
+[ ] review local_ai_search code to fill section out
+[ ] verify local_ai remains the canonical owner of session lifecycle
 
 #### Validation
 
