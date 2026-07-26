@@ -7,6 +7,7 @@ import {
   runQuery,
 } from "./api";
 import { renderChat, type ChatTurn } from "./render-chat";
+import { escapeAttr, escapeHtml, formatText } from "./render-utils";
 import { renderSearch } from "./render-search";
 import type {
   AppState,
@@ -518,7 +519,7 @@ function renderSessionHistory(
                 <div class="message-label">
                   ${message.role === "user" ? "You" : "Local AI Search"}
                 </div>
-                <div class="answer">${formatSessionContent(message.content)}</div>
+                <div class="answer">${formatText(message.content)}</div>
               </div>
             </article>
           `,
@@ -526,13 +527,6 @@ function renderSessionHistory(
         .join("")}
     </section>
   `;
-}
-
-function formatSessionContent(value: string): string {
-  return escapeHtml(value)
-    .split("\n\n")
-    .map((paragraph) => `<p>${paragraph.replaceAll("\n", "<br>")}</p>`)
-    .join("");
 }
 
 function renderLoading(): string {
@@ -603,17 +597,4 @@ function renderWorkspaceOverview(workspace: WorkspaceNode): string {
       ${empty}
     </section>
   `;
-}
-
-function escapeHtml(value: string): string {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
-
-function escapeAttr(value: string): string {
-  return escapeHtml(value);
 }

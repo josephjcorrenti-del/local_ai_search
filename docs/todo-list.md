@@ -255,11 +255,11 @@
 
 #### Duplication review
 
-[ ] inventory duplicated frontend behavior
-[ ] consolidate shared rendering primitives
-[ ] consolidate evidence rendering
-[ ] consolidate HTML escaping
-[ ] consolidate debug/status rendering
+[x] inventory duplicated frontend behavior
+[x] consolidate shared rendering primitives
+[x] consolidate evidence rendering
+[x] consolidate HTML escaping
+[x] consolidate debug/status rendering
 
 #### Responsibility extraction
 
@@ -337,6 +337,7 @@
 [ ] improve session and workspace creation UX
 [ ] make it clear where a newly created session or workspace appears
 [ ] replace bulky prompt-based creation flows with an integrated frontend interaction
+[ ] need to be able to stop an ai search 
 
 ### Session lifecycle and explicit creation
 

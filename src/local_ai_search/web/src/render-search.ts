@@ -1,3 +1,10 @@
+import {
+  renderDebugResponse,
+  renderEvidenceAccountingText,
+  renderEvidenceSnippet,
+  renderEvidenceTitle,
+  renderEvidenceUrl,
+} from "./render-evidence";
 import type { QueryResponse } from "./types";
 
 export function renderSearch(response: QueryResponse): string {
@@ -9,7 +16,7 @@ export function renderSearch(response: QueryResponse): string {
       <section class="empty-state">
         <h2>No results</h2>
         <p>No search evidence was returned for this query.</p>
-        ${renderDebug(response)}
+        ${renderDebugResponse(response)}
       </section>
     `;
   }
@@ -19,7 +26,7 @@ export function renderSearch(response: QueryResponse): string {
       <p class="result-count">
         ${
           accounting
-            ? `Found: ${accounting.available_count} · Used: ${accounting.evidence_count} · Shown: ${accounting.displayed_count}`
+            ? renderEvidenceAccountingText(accounting)
             : `${results.length} results`
         }
         · ${response.elapsed_ms} ms
@@ -29,66 +36,13 @@ export function renderSearch(response: QueryResponse): string {
           (result) => `
             <article class="search-result">
               ${renderEvidenceTitle(result)}
-              ${
-                result.url
-                  ? `<div class="result-url">${escapeHtml(result.url)}</div>`
-                  : ""
-              }
-              <p>${escapeHtml(result.snippet || "")}</p>
+              ${renderEvidenceUrl(result)}
+              ${renderEvidenceSnippet(result)}
             </article>
           `,
         )
         .join("")}
-      ${renderDebug(response)}
+      ${renderDebugResponse(response)}
     </section>
   `;
-}
-
-function renderDebug(response: QueryResponse): string {
-  return `
-    <details class="debug">
-      <summary>Raw response</summary>
-      <pre>${escapeHtml(JSON.stringify(response, null, 2))}</pre>
-    </details>
-  `;
-}
-
-function renderEvidenceTitle(result: {
-  title?: string;
-  url?: string;
-  source_type?: string;
-}): string {
-  const label = result.source_type
-    ? `<span class="source-type">${escapeHtml(result.source_type)}</span> `
-    : "";
-
-  const title = escapeHtml(result.title || "Untitled");
-
-  if (result.url) {
-    return `
-      ${label}<a
-        class="result-title"
-        href="${escapeAttr(result.url)}"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        ${title}
-      </a>
-    `;
-  }
-
-  return `${label}<strong class="result-title">${title}</strong>`;
-}
-
-function escapeHtml(value: string): string {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
-
-function escapeAttr(value: string): string {
-  return escapeHtml(value);
 }

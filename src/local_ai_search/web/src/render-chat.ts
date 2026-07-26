@@ -1,3 +1,11 @@
+import {
+  renderDebugResponse,
+  renderEvidenceAccountingText,
+  renderEvidenceSnippet,
+  renderEvidenceTitle,
+  renderEvidenceUrl,
+} from "./render-evidence";
+import { escapeHtml, formatText } from "./render-utils";
 import type { QueryResponse } from "./types";
 
 export type ChatTurn = {
@@ -35,7 +43,7 @@ function renderTurn(turn: ChatTurn): string {
         <div class="avatar bot">◎</div>
         <div class="message-body">
           <div class="message-label assistant-label">Local AI Search</div>
-          <div class="answer">${formatAnswer(turn.response.answer || "No answer returned.")}</div>
+          <div class="answer">${formatText(turn.response.answer || "No answer returned.")}</div>
           ${
             sources.length > 0
               ? `
@@ -47,16 +55,8 @@ function renderTurn(turn: ChatTurn): string {
                         (source) => `
                           <li>
                             ${renderEvidenceTitle(source)}
-                            ${
-                              source.url
-                                ? `<div class="result-url">${escapeHtml(source.url)}</div>`
-                                : ""
-                            }
-                            ${
-                              source.snippet
-                                ? `<p>${escapeHtml(source.snippet)}</p>`
-                                : ""
-                            }
+                            ${renderEvidenceUrl(source)}
+                            ${renderEvidenceSnippet(source)}
                           </li>
                         `,
                       )
@@ -73,63 +73,15 @@ function renderTurn(turn: ChatTurn): string {
                   <summary>Evidence</summary>
                   <section class="evidence-summary">
                     <strong>Evidence summary</strong>
-                    <p>
-                      Found: ${accounting.available_count}
-                      &nbsp; Used: ${accounting.evidence_count}
-                      &nbsp; Shown: ${accounting.displayed_count}
-                    </p>
+                    <p>${renderEvidenceAccountingText(accounting)}</p>
                   </section>
                 </details>
               `
               : ""
           }
-          <details class="debug">
-            <summary>Raw response</summary>
-            <pre>${escapeHtml(JSON.stringify(turn.response, null, 2))}</pre>
-          </details>
+          ${renderDebugResponse(turn.response)}
         </div>
       </article>
     </section>
   `;
-}
-
-function renderEvidenceTitle(result: {
-  title?: string;
-  url?: string;
-  source_type?: string;
-}): string {
-  const label = result.source_type
-    ? `<span class="source-type">${escapeHtml(result.source_type)}</span> `
-    : "";
-  const title = escapeHtml(result.title || "Untitled");
-
-  if (result.url) {
-    return `
-      ${label}<a class="result-title" href="${escapeAttr(result.url)}" target="_blank" rel="noopener noreferrer">
-        ${title}
-      </a>
-    `;
-  }
-
-  return `${label}<strong class="result-title">${title}</strong>`;
-}
-
-function formatAnswer(value: string): string {
-  return escapeHtml(value)
-    .split("\n\n")
-    .map((paragraph) => `<p>${paragraph.replaceAll("\n", "<br>")}</p>`)
-    .join("");
-}
-
-function escapeHtml(value: string): string {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
-
-function escapeAttr(value: string): string {
-  return escapeHtml(value);
 }
