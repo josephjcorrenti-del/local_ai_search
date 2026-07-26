@@ -248,10 +248,10 @@
 
 #### Frontend state
 
-[ ] introduce explicit resource-selection model
-[ ] stop using hidden DOM inputs as application state
-[ ] define application state ownership
-[ ] prepare state model for future filesystem integration
+[x] introduce explicit resource-selection model
+[x] stop using hidden DOM inputs as application state
+[x] define application state ownership
+[x] prepare state model for future filesystem integration
 
 #### Duplication review
 

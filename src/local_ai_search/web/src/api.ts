@@ -77,8 +77,8 @@ export function loadNavigation(): Promise<NavigationTree> {
 export function runQuery(
   query: string,
   mode: QueryMode,
-  session?: string,
-  workspace?: string,
+  session: string | null,
+  workspace: string | null,
 ): Promise<QueryResponse> {
   return requestJson<QueryResponse>("/api/v1/query", {
     method: "POST",

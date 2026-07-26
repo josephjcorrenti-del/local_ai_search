@@ -53,6 +53,33 @@ function renderDebug(response: QueryResponse): string {
   `;
 }
 
+function renderEvidenceTitle(result: {
+  title?: string;
+  url?: string;
+  source_type?: string;
+}): string {
+  const label = result.source_type
+    ? `<span class="source-type">${escapeHtml(result.source_type)}</span> `
+    : "";
+
+  const title = escapeHtml(result.title || "Untitled");
+
+  if (result.url) {
+    return `
+      ${label}<a
+        class="result-title"
+        href="${escapeAttr(result.url)}"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        ${title}
+      </a>
+    `;
+  }
+
+  return `${label}<strong class="result-title">${title}</strong>`;
+}
+
 function escapeHtml(value: string): string {
   return value
     .replaceAll("&", "&amp;")

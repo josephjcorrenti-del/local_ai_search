@@ -1,5 +1,15 @@
 export type QueryMode = "integrated" | "ai_only" | "web_only";
 
+export type ResourceSelection = {
+  session: string | null;
+  workspace: string | null;
+};
+
+export type AppState = {
+  selection: ResourceSelection;
+  mode: QueryMode;
+};
+
 export type SessionNode = {
   name: string;
 };
@@ -63,6 +73,8 @@ export type QueryResponse = {
   ok: boolean;
   mode: QueryMode;
   query: string;
+  session: string;
+  workspace: string | null;
   answer: string | null;
   evidence: Evidence | null;
   accounting: EvidenceAccounting | null;

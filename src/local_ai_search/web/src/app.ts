@@ -1,3 +1,5 @@
+import "./styles.css";
+
 import {
   createWorkspace,
   loadNavigation,
@@ -6,6 +8,14 @@ import {
 } from "./api";
 import { renderChat, type ChatTurn } from "./render-chat";
 import { renderSearch } from "./render-search";
+import type {
+  AppState,
+  NavigationTree,
+  QueryMode,
+  ResourceSelection,
+  SessionNode,
+  WorkspaceNode,
+} from "./types";
 
 const app = document.querySelector<HTMLDivElement>("#app");
 
@@ -43,8 +53,6 @@ app.innerHTML = `
 
 <form id="query-form" class="query-form">
         <input id="query" class="query-input" name="query" placeholder="Search or ask..." required />
-        <input id="session" name="session" type="hidden" />
-        <input id="workspace" name="workspace" type="hidden" />
         <select id="mode" name="mode">
           <option value="integrated">integrated</option>
           <option value="ai_only">ai only</option>
@@ -66,9 +74,6 @@ const selectedWorkspace =
   document.querySelector<HTMLElement>("#selected-workspace");
 const newSessionButton =
   document.querySelector<HTMLButtonElement>("#new-session");
-const sessionInput = document.querySelector<HTMLInputElement>("#session");
-const workspaceInput =
-  document.querySelector<HTMLInputElement>("#workspace");
 const queryInput = document.querySelector<HTMLInputElement>("#query");
 const modeSelect = document.querySelector<HTMLSelectElement>("#mode");
 const output = document.querySelector<HTMLElement>("#output");
@@ -79,9 +84,7 @@ if (
   !sessionList ||
   !selectedSession ||
   !selectedWorkspace ||
-  !workspaceInput ||
   !newSessionButton ||
-  !sessionInput ||
   !queryInput ||
   !modeSelect ||
   !output ||
@@ -90,12 +93,43 @@ if (
   throw new Error("missing UI elements");
 }
 
+const state: AppState = {
+  selection: {
+    session: null,
+    workspace: null,
+  },
+  mode: "integrated",
+};
+
 const chatTurns: ChatTurn[] = [];
 let loadedSessionHtml = "";
 
 const initialParams = new URLSearchParams(window.location.search);
 const initialQuery = initialParams.get("query");
 const initialMode = initialParams.get("mode");
+
+function setResourceSelection(selection: ResourceSelection): void {
+  state.selection = {
+    session: selection.session,
+    workspace: selection.workspace,
+  };
+
+  renderResourceSelection();
+}
+
+function renderResourceSelection(): void {
+  const { session, workspace } = state.selection;
+
+  selectedSession.textContent = session
+    ? `Selected: ${session}`
+    : "No session selected";
+
+  selectedWorkspace.textContent = workspace
+    ? `Selected: ${workspace}`
+    : "No workspace selected";
+
+  updateNavigationSelection();
+}
 
 async function refreshNavigation(): Promise<void> {
   try {
@@ -188,20 +222,13 @@ async function openSession(
   sessionName: string,
   workspaceName: string | null,
 ): Promise<void> {
-  sessionInput.value = sessionName;
-  selectedSession.textContent = `Selected: ${sessionName}`;
-
-  if (workspaceName) {
-    workspaceInput.value = workspaceName;
-    selectedWorkspace.textContent = `Selected: ${workspaceName}`;
-  } else {
-    workspaceInput.value = "";
-    selectedWorkspace.textContent = "No workspace selected";
-  }
+  setResourceSelection({
+    session: sessionName,
+    workspace: workspaceName,
+  });
 
   output.innerHTML = "";
   emptyState.hidden = false;
-  updateNavigationSelection();
   queryInput.value = "";
 
   try {
@@ -222,24 +249,23 @@ async function openSession(
 }
 
 function openWorkspace(workspace: WorkspaceNode): void {
-  workspaceInput.value = workspace.name;
-  selectedWorkspace.textContent = `Selected: ${workspace.name}`;
-
-  sessionInput.value = "";
-  selectedSession.textContent = "No session selected";
+  setResourceSelection({
+    session: null,
+    workspace: workspace.name,
+  });
 
   chatTurns.length = 0;
   loadedSessionHtml = "";
 
   output.innerHTML = renderWorkspaceOverview(workspace);
   emptyState.hidden = true;
-
-  updateNavigationSelection();
 }
 
 function updateNavigationSelection(): void {
-  const selectedSessionName = sessionInput.value;
-  const selectedWorkspaceName = workspaceInput.value;
+  const {
+    session: selectedSessionName,
+    workspace: selectedWorkspaceName,
+  } = state.selection;
 
   sessionList
     .querySelectorAll<HTMLButtonElement>(".session-button")
@@ -271,19 +297,22 @@ function updateNavigationSelection(): void {
     });
 }
 
+renderResourceSelection();
 void refreshNavigation();
 
 newSessionButton.addEventListener("click", () => {
   const name = window.prompt("New session name:");
+  const sessionName = name?.trim();
 
-  if (!name?.trim()) {
+  if (!sessionName) {
     return;
   }
 
-  sessionInput.value = name.trim();
-  workspaceInput.value = "";
-  selectedWorkspace.textContent = "No workspace selected";
-  selectedSession.textContent = `New session: ${name.trim()}`;
+  setResourceSelection({
+    session: sessionName,
+    workspace: null,
+  });
+
   chatTurns.length = 0;
   loadedSessionHtml = "";
   output.innerHTML = "";
@@ -296,17 +325,26 @@ if (initialQuery) {
   queryInput.value = initialQuery;
 }
 
-if (initialMode === "integrated" || initialMode === "ai_only" || initialMode === "web_only") {
+if (
+  initialMode === "integrated" ||
+  initialMode === "ai_only" ||
+  initialMode === "web_only"
+) {
+  state.mode = initialMode;
   modeSelect.value = initialMode;
 }
+
+modeSelect.addEventListener("change", () => {
+  state.mode = modeSelect.value as QueryMode;
+});
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
 
-  let session = sessionInput.value.trim();
-  const workspace = workspaceInput.value.trim();
+  let session = state.selection.session;
+  const workspace = state.selection.workspace;
   const query = queryInput.value.trim();
-  const mode = modeSelect.value as QueryMode;
+  const mode = state.mode;
 
   if (!query) {
     return;
@@ -332,16 +370,10 @@ form.addEventListener("submit", async (event) => {
       workspace,
     );
 
-  sessionInput.value = response.session;
-  workspaceInput.value = response.workspace ?? "";
-
-  selectedSession.textContent = `Selected: ${response.session}`;
-
-  selectedWorkspace.textContent = response.workspace
-    ? `Selected: ${response.workspace}`
-    : "No workspace selected";
-
-  updateNavigationSelection();
+  setResourceSelection({
+    session: response.session,
+    workspace: response.workspace,
+  });
 
     if (response.mode === "web_only") {
       output.innerHTML = renderSearch(response);
