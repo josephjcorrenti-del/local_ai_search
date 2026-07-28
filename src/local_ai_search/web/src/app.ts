@@ -3,19 +3,18 @@ import "./styles.css";
 import {
   createWorkspace,
   loadNavigation,
-  loadSession,
   runQuery,
 } from "./api";
 import {
   renderError,
   renderLoading,
   renderNavigation,
-  renderSessionHistory,
   renderWorkspaceOverview,
 } from "./render-app";
 import { renderChat, type ChatTurn } from "./render-chat";
 import { escapeHtml } from "./render-utils";
 import { renderSearch } from "./render-search";
+import { createSessionController } from "./sessions";
 import type {
   AppState,
   QueryMode,
@@ -178,7 +177,7 @@ async function refreshNavigation(): Promise<void> {
             return;
           }
 
-          await openSession(sessionName, null);
+          await sessionController.open(sessionName, null);
         });
       });
 
@@ -210,7 +209,10 @@ async function refreshNavigation(): Promise<void> {
             return;
           }
 
-          await openSession(sessionName, workspaceName);
+          await sessionController.open(
+            sessionName,
+            workspaceName,
+          );
         });
       });
 
@@ -224,35 +226,16 @@ async function refreshNavigation(): Promise<void> {
   }
 }
 
-async function openSession(
-  sessionName: string,
-  workspaceName: string | null,
-): Promise<void> {
-  setResourceSelection({
-    session: sessionName,
-    workspace: workspaceName,
-  });
-
-  output.innerHTML = "";
-  emptyState.hidden = false;
-  queryInput.value = "";
-
-  try {
-    const history = await loadSession(sessionName);
-
-    chatTurns.length = 0;
-    loadedSessionHtml = renderSessionHistory(history.messages);
-
-    output.innerHTML = loadedSessionHtml;
-    emptyState.hidden = true;
-  } catch (error) {
-    output.innerHTML = renderError(
-      error instanceof Error
-        ? error.message
-        : "Unable to load session",
-    );
-  }
-}
+const sessionController = createSessionController({
+  output,
+  emptyState,
+  queryInput,
+  chatTurns,
+  setResourceSelection,
+  setLoadedSessionHtml: (html) => {
+    loadedSessionHtml = html;
+  },
+});
 
 function openWorkspace(workspace: WorkspaceNode): void {
   setResourceSelection({
