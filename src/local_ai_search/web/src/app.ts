@@ -1,17 +1,10 @@
 import "./styles.css";
 
-import {
-  loadNavigation,
-  runQuery,
-} from "./api";
-import {
-  renderError,
-  renderLoading,
-  renderNavigation,
-} from "./render-app";
-import { renderChat, type ChatTurn } from "./render-chat";
+import { loadNavigation } from "./api";
+import { createQueryController } from "./query-lifecycle";
+import { renderNavigation } from "./render-app";
+import type { ChatTurn } from "./render-chat";
 import { escapeHtml } from "./render-utils";
-import { renderSearch } from "./render-search";
 import { createSessionController } from "./sessions";
 import { createWorkspaceController } from "./workspaces";
 import type {
@@ -228,6 +221,17 @@ const workspaceController = createWorkspaceController({
   refreshNavigation,
 });
 
+const queryController = createQueryController({
+  output,
+  emptyState,
+  queryInput,
+  chatTurns,
+  state,
+  setResourceSelection,
+  getLoadedSessionHtml: () => loadedSessionHtml,
+  refreshNavigation,
+});
+
 function updateNavigationSelection(): void {
   const {
     session: selectedSessionName,
@@ -306,63 +310,5 @@ modeSelect.addEventListener("change", () => {
 });
 
 form.addEventListener("submit", async (event) => {
-  event.preventDefault();
-
-  const session = state.selection.session;
-  const workspace = state.selection.workspace;
-  const query = queryInput.value.trim();
-  const mode = state.mode;
-
-  if (!query) {
-    return;
-  }
-
-  emptyState.hidden = true;
-
-  if (mode === "web_only") {
-    output.innerHTML = renderLoading();
-  } else {
-    output.innerHTML = `
-      ${loadedSessionHtml}
-      ${renderChat(chatTurns)}
-      ${renderLoading()}
-    `;
-  }
-
-  try {
-    const response = await runQuery(
-      query,
-      mode,
-      session,
-      workspace,
-    );
-
-    setResourceSelection({
-      session: response.session,
-      workspace: response.workspace,
-    });
-
-    if (response.mode === "web_only") {
-      output.innerHTML = renderSearch(response);
-      return;
-    }
-
-    chatTurns.push({ query, response });
-    output.innerHTML = `
-      ${loadedSessionHtml}
-      ${renderChat(chatTurns)}
-    `;
-
-    await refreshNavigation();
-
-    queryInput.value = "";
-    window.scrollTo({
-      top: document.body.scrollHeight,
-      behavior: "smooth",
-    });
-  } catch (error) {
-    output.innerHTML = renderError(
-      error instanceof Error ? error.message : "Unknown error",
-    );
-  }
+  await queryController.submit(event);
 });
