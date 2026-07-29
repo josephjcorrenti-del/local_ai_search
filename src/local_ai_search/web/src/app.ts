@@ -1,7 +1,6 @@
 import "./styles.css";
 
 import {
-  createWorkspace,
   loadNavigation,
   runQuery,
 } from "./api";
@@ -9,17 +8,16 @@ import {
   renderError,
   renderLoading,
   renderNavigation,
-  renderWorkspaceOverview,
 } from "./render-app";
 import { renderChat, type ChatTurn } from "./render-chat";
 import { escapeHtml } from "./render-utils";
 import { renderSearch } from "./render-search";
 import { createSessionController } from "./sessions";
+import { createWorkspaceController } from "./workspaces";
 import type {
   AppState,
   QueryMode,
   ResourceSelection,
-  WorkspaceNode,
 } from "./types";
 
 const app = document.querySelector<HTMLDivElement>("#app");
@@ -146,25 +144,7 @@ async function refreshNavigation(): Promise<void> {
       sessionList.querySelector<HTMLButtonElement>("#new-workspace");
 
     newWorkspaceButton?.addEventListener("click", async () => {
-      const name = window.prompt("New workspace name:");
-
-      if (!name?.trim()) {
-        return;
-      }
-
-      try {
-        const workspace = await createWorkspace(name.trim());
-
-        await refreshNavigation();
-        openWorkspace(workspace);
-      } catch (error) {
-        output.innerHTML = renderError(
-          error instanceof Error
-            ? error.message
-            : "Unable to create workspace",
-        );
-        emptyState.hidden = true;
-      }
+      await workspaceController.create();
     });
 
     sessionList
@@ -194,7 +174,7 @@ async function refreshNavigation(): Promise<void> {
             return;
           }
 
-          openWorkspace(workspace);
+          workspaceController.open(workspace);
         });
       });
 
@@ -237,18 +217,16 @@ const sessionController = createSessionController({
   },
 });
 
-function openWorkspace(workspace: WorkspaceNode): void {
-  setResourceSelection({
-    session: null,
-    workspace: workspace.name,
-  });
-
-  chatTurns.length = 0;
-  loadedSessionHtml = "";
-
-  output.innerHTML = renderWorkspaceOverview(workspace);
-  emptyState.hidden = true;
-}
+const workspaceController = createWorkspaceController({
+  output,
+  emptyState,
+  chatTurns,
+  setResourceSelection,
+  setLoadedSessionHtml: (html) => {
+    loadedSessionHtml = html;
+  },
+  refreshNavigation,
+});
 
 function updateNavigationSelection(): void {
   const {
