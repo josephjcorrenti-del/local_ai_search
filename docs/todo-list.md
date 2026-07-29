@@ -264,7 +264,7 @@
 #### Responsibility extraction
 
 [x] extract rendering ownership from app.ts
-[ ] extract navigation ownership from app.ts
+[x] extract navigation ownership from app.ts
 [x] extract session ownership from app.ts
 [x] extract workspace ownership from app.ts
 [x] extract query lifecycle from app.ts

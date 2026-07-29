@@ -1,10 +1,8 @@
 import "./styles.css";
 
-import { loadNavigation } from "./api";
+import { createNavigationController } from "./navigation";
 import { createQueryController } from "./query-lifecycle";
-import { renderNavigation } from "./render-app";
 import type { ChatTurn } from "./render-chat";
-import { escapeHtml } from "./render-utils";
 import { createSessionController } from "./sessions";
 import { createWorkspaceController } from "./workspaces";
 import type {
@@ -110,93 +108,7 @@ function setResourceSelection(selection: ResourceSelection): void {
     workspace: selection.workspace,
   };
 
-  renderResourceSelection();
-}
-
-function renderResourceSelection(): void {
-  const { session, workspace } = state.selection;
-
-  selectedSession.textContent = session
-    ? `Selected: ${session}`
-    : "No session selected";
-
-  selectedWorkspace.textContent = workspace
-    ? `Selected: ${workspace}`
-    : "No workspace selected";
-
-  updateNavigationSelection();
-}
-
-async function refreshNavigation(): Promise<void> {
-  try {
-    const tree = await loadNavigation();
-
-    sessionList.innerHTML = renderNavigation(tree);
-
-    const newWorkspaceButton =
-      sessionList.querySelector<HTMLButtonElement>("#new-workspace");
-
-    newWorkspaceButton?.addEventListener("click", async () => {
-      await workspaceController.create();
-    });
-
-    sessionList
-      .querySelectorAll<HTMLButtonElement>(".session-button")
-      .forEach((button) => {
-        button.addEventListener("click", async () => {
-          const sessionName = button.dataset.session || "";
-
-          if (!sessionName) {
-            return;
-          }
-
-          await sessionController.open(sessionName, null);
-        });
-      });
-
-    sessionList
-      .querySelectorAll<HTMLButtonElement>(".workspace-button")
-      .forEach((button) => {
-        button.addEventListener("click", () => {
-          const workspaceName = button.dataset.workspace || "";
-          const workspace = tree.workspaces.find(
-            (item) => item.name === workspaceName,
-          );
-
-          if (!workspace) {
-            return;
-          }
-
-          workspaceController.open(workspace);
-        });
-      });
-
-    sessionList
-      .querySelectorAll<HTMLButtonElement>(".workspace-session-button")
-      .forEach((button) => {
-        button.addEventListener("click", async () => {
-          const sessionName = button.dataset.session || "";
-          const workspaceName = button.dataset.workspace || "";
-
-          if (!sessionName || !workspaceName) {
-            return;
-          }
-
-          await sessionController.open(
-            sessionName,
-            workspaceName,
-          );
-        });
-      });
-
-    updateNavigationSelection();
-  } catch (error) {
-    sessionList.innerHTML = `
-      <p class="navigation-empty">
-        Unable to load navigation: ${escapeHtml(String(error))}
-      </p>
-    `;
-  }
+  navigationController.renderSelection(state.selection);
 }
 
 const sessionController = createSessionController({
@@ -210,6 +122,19 @@ const sessionController = createSessionController({
   },
 });
 
+const navigationController = createNavigationController({
+  sessionList,
+  selectedSession,
+  selectedWorkspace,
+  getResourceSelection: () => state.selection,
+  createWorkspace: () => workspaceController.create(),
+  openSession: (sessionName, workspaceName) =>
+    sessionController.open(sessionName, workspaceName),
+  openWorkspace: (workspace) => {
+    workspaceController.open(workspace);
+  },
+});
+
 const workspaceController = createWorkspaceController({
   output,
   emptyState,
@@ -218,7 +143,7 @@ const workspaceController = createWorkspaceController({
   setLoadedSessionHtml: (html) => {
     loadedSessionHtml = html;
   },
-  refreshNavigation,
+  refreshNavigation: navigationController.refresh,
 });
 
 const queryController = createQueryController({
@@ -229,47 +154,11 @@ const queryController = createQueryController({
   state,
   setResourceSelection,
   getLoadedSessionHtml: () => loadedSessionHtml,
-  refreshNavigation,
+  refreshNavigation: navigationController.refresh,
 });
 
-function updateNavigationSelection(): void {
-  const {
-    session: selectedSessionName,
-    workspace: selectedWorkspaceName,
-  } = state.selection;
-
-  sessionList
-    .querySelectorAll<HTMLButtonElement>(".session-button")
-    .forEach((button) => {
-      button.classList.toggle(
-        "selected",
-        !selectedWorkspaceName &&
-          button.dataset.session === selectedSessionName,
-      );
-    });
-
-  sessionList
-    .querySelectorAll<HTMLButtonElement>(".workspace-button")
-    .forEach((button) => {
-      button.classList.toggle(
-        "selected",
-        button.dataset.workspace === selectedWorkspaceName,
-      );
-    });
-
-  sessionList
-    .querySelectorAll<HTMLButtonElement>(".workspace-session-button")
-    .forEach((button) => {
-      button.classList.toggle(
-        "selected",
-        button.dataset.workspace === selectedWorkspaceName &&
-          button.dataset.session === selectedSessionName,
-      );
-    });
-}
-
-renderResourceSelection();
-void refreshNavigation();
+navigationController.renderSelection(state.selection);
+void navigationController.refresh();
 
 newSessionButton.addEventListener("click", () => {
   const name = window.prompt("New session name:");
