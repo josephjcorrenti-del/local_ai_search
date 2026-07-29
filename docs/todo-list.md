@@ -268,7 +268,7 @@
 [x] extract session ownership from app.ts
 [x] extract workspace ownership from app.ts
 [x] extract query lifecycle from app.ts
-[ ] reduce app.ts to application composition
+[x] reduce app.ts to application composition
 
 #### local_ai_search should not be doing local_ais job
 [ ] review local_ai_search code to fill section out

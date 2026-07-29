@@ -157,28 +157,16 @@ const queryController = createQueryController({
   refreshNavigation: navigationController.refresh,
 });
 
-navigationController.renderSelection(state.selection);
-void navigationController.refresh();
-
 newSessionButton.addEventListener("click", () => {
-  const name = window.prompt("New session name:");
-  const sessionName = name?.trim();
+  sessionController.startNew();
+});
 
-  if (!sessionName) {
-    return;
-  }
+modeSelect.addEventListener("change", () => {
+  state.mode = modeSelect.value as QueryMode;
+});
 
-  setResourceSelection({
-    session: sessionName,
-    workspace: null,
-  });
-
-  chatTurns.length = 0;
-  loadedSessionHtml = "";
-  output.innerHTML = "";
-  emptyState.hidden = false;
-  queryInput.value = "";
-  queryInput.focus();
+form.addEventListener("submit", async (event) => {
+  await queryController.submit(event);
 });
 
 if (initialQuery) {
@@ -194,10 +182,5 @@ if (
   modeSelect.value = initialMode;
 }
 
-modeSelect.addEventListener("change", () => {
-  state.mode = modeSelect.value as QueryMode;
-});
-
-form.addEventListener("submit", async (event) => {
-  await queryController.submit(event);
-});
+navigationController.renderSelection(state.selection);
+void navigationController.refresh();

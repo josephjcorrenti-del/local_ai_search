@@ -1,5 +1,8 @@
 import { loadSession } from "./api";
-import { renderError, renderSessionHistory } from "./render-app";
+import {
+  renderError,
+  renderSessionHistory,
+} from "./render-app";
 import type { ChatTurn } from "./render-chat";
 import type { ResourceSelection } from "./types";
 
@@ -13,6 +16,7 @@ export interface SessionControllerOptions {
 }
 
 export interface SessionController {
+  startNew(): void;
   open(
     sessionName: string,
     workspaceName: string | null,
@@ -30,6 +34,27 @@ export function createSessionController(
     setResourceSelection,
     setLoadedSessionHtml,
   } = options;
+
+  function startNew(): void {
+    const name = window.prompt("New session name:");
+    const sessionName = name?.trim();
+
+    if (!sessionName) {
+      return;
+    }
+
+    setResourceSelection({
+      session: sessionName,
+      workspace: null,
+    });
+
+    chatTurns.length = 0;
+    setLoadedSessionHtml("");
+    output.innerHTML = "";
+    emptyState.hidden = false;
+    queryInput.value = "";
+    queryInput.focus();
+  }
 
   async function open(
     sessionName: string,
@@ -64,6 +89,7 @@ export function createSessionController(
   }
 
   return {
+    startNew,
     open,
   };
 }
