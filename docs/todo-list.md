@@ -270,9 +270,30 @@
 [x] extract query lifecycle from app.ts
 [x] reduce app.ts to application composition
 
-#### local_ai_search should not be doing local_ais job
-[ ] review local_ai_search code to fill section out
-[ ] verify local_ai remains the canonical owner of session lifecycle
+#### local_ai_search should not be doing local_ai's job
+
+[x] review local_ai_search session, workspace, prompt, CLI, and API ownership
+[x] verify local_ai owns canonical session and workspace persistence
+[x] verify local_ai owns session normalization, timestamps, bounded history, and summarization policy
+[x] verify local_ai_search does not read or write session/workspace files directly
+[x] keep retrieval, intent routing, evidence shaping, and evidence-aware prompt policy in local_ai_search
+[x] keep navigation ordering and API response shaping in local_ai_search
+[ ] define one reusable local_ai chat operation that returns an answer without printing
+[ ] allow the local_ai chat operation to accept orchestrator-supplied instructions or evidence context
+[ ] keep session-history loading inside the canonical local_ai chat operation
+[ ] keep user and assistant message persistence inside the canonical local_ai chat operation
+[ ] expose usable session context through local_ai without requiring local_ai_search to interpret stored summary shape
+[ ] route integrated CLI and API queries through the canonical local_ai chat operation
+[ ] route ai_only CLI and API queries through the same canonical local_ai chat operation
+[ ] remove direct session_append ownership from local_ai_search
+[ ] remove direct session_turns_get use from local_ai_search prompt execution
+[x] treat current local_ai_search query behavior as authoritative when package behavior conflicts
+[ ] preserve current integrated, ai_only, web_only, and insufficient-context behavior during ownership changes
+[ ] preserve current workspace/session association behavior during ownership changes
+[ ] verify default and named sessions behave identically through CLI and API
+[ ] add boundary tests proving local_ai_search delegates session lifecycle to local_ai
+[ ] audit local_ai_search AI model configuration for duplicated or unused local_ai runtime settings
+[ ] verify local_ai is the canonical owner of session lifecycle
 
 #### Validation
 
