@@ -29,12 +29,12 @@ import sys
 import time
 from typing import Callable
 
+from local_ai.chat import chat_answer_get
 from local_ai.config import CONFIG
 from local_ai.doctor import doctor_run
 from local_ai.fs import fs_content_window_get, fs_read
 from local_ai.log import log_event
 from local_ai.memory import (
-    session_append,
     session_clear,
     session_migrate,
     session_names_get,
@@ -57,7 +57,6 @@ from local_ai.profile import (
 from local_ai.runtime import (
     ai_status_show,
     ollama_chat,
-    ollama_chat_stream,
     ollama_ensure_running,
     ollama_is_healthy,
 )
@@ -251,45 +250,27 @@ def chat_run(
     model_name: str | None = None,
     stream: bool = False,
 ) -> None:
-    """Run chat with optional session memory persistence."""
-    ollama_ensure_running()
-
-    model = model_name or CONFIG.chat_model_name
-
-    messages = [
-        {
-            "role": "system",
-            "content": (
-                "You are a concise local assistant. "
-                "Help with general questions, coding, debugging, and technical reasoning. "
-                "Be practical and direct."
-            ),
-        }
-    ]
-
-    messages.extend(session_turns_get(session_name))
-    messages.append({"role": "user", "content": user_prompt})
-
-    payload = {
-        "model": model,
-        "stream": stream,
-        "messages": messages,
-    }
-
+    """Run chat through the reusable chat operation and print its output."""
     if stream:
-        parts: list[str] = []
-        for chunk in ollama_chat_stream(payload):
+        def print_stream_chunk(chunk: str) -> None:
             print(chunk, end="", flush=True)
-            parts.append(chunk)
-        print()
-        answer = "".join(parts)
-    else:
-        result = ollama_chat(payload)
-        answer = result["message"]["content"]
-        print(answer)
 
-    session_append("user", user_prompt, session_name)
-    session_append("assistant", answer, session_name)
+        chat_answer_get(
+            user_prompt,
+            session_name=session_name,
+            model_name=model_name,
+            stream=True,
+            stream_chunk_handler=print_stream_chunk,
+        )
+        print()
+        return
+
+    answer = chat_answer_get(
+        user_prompt,
+        session_name=session_name,
+        model_name=model_name,
+    )
+    print(answer)
 
 def clear_run(session_name: str | None = None) -> None:
     """Clear stored messages for a session."""

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from local_ai import cli
+from local_ai import chat, cli
 
 
 def test_prompt_run_uses_plain_prompt_and_prints_answer(
@@ -54,14 +54,13 @@ def test_prompt_run_uses_plain_prompt_and_prints_answer(
     ]
 
 
-def test_chat_run_uses_history_and_persists_turn(
+def test_chat_answer_get_uses_history_and_persists_turn(
     monkeypatch,
-    capsys,
 ):
     calls = []
 
     monkeypatch.setattr(
-        cli,
+        chat,
         "ollama_ensure_running",
         lambda: calls.append(("ollama_ensure_running",)),
     )
@@ -80,7 +79,7 @@ def test_chat_run_uses_history_and_persists_turn(
         ]
 
     monkeypatch.setattr(
-        cli,
+        chat,
         "session_turns_get",
         fake_session_turns_get,
     )
@@ -93,7 +92,7 @@ def test_chat_run_uses_history_and_persists_turn(
             }
         }
 
-    monkeypatch.setattr(cli, "ollama_chat", fake_ollama_chat)
+    monkeypatch.setattr(chat, "ollama_chat", fake_ollama_chat)
 
     def fake_session_append(role, content, session_name):
         calls.append(
@@ -106,25 +105,24 @@ def test_chat_run_uses_history_and_persists_turn(
         )
 
     monkeypatch.setattr(
-        cli,
+        chat,
         "session_append",
         fake_session_append,
     )
 
-    result = cli.chat_run(
+    answer = chat.chat_answer_get(
         "current question",
         session_name="test-session",
     )
 
-    assert result is None
-    assert capsys.readouterr().out == "current answer\n"
+    assert answer == "current answer"
     assert calls == [
         ("ollama_ensure_running",),
         ("session_turns_get", "test-session"),
         (
             "ollama_chat",
             {
-                "model": cli.CONFIG.chat_model_name,
+                "model": chat.CONFIG.chat_model_name,
                 "stream": False,
                 "messages": [
                     {
@@ -163,4 +161,104 @@ def test_chat_run_uses_history_and_persists_turn(
             "current answer",
             "test-session",
         ),
+    ]
+
+
+def test_chat_run_prints_returned_answer(
+    monkeypatch,
+    capsys,
+):
+    calls = []
+
+    def fake_chat_answer_get(
+        user_prompt,
+        session_name=None,
+        model_name=None,
+        stream=False,
+        stream_chunk_handler=None,
+    ):
+        calls.append(
+            (
+                user_prompt,
+                session_name,
+                model_name,
+                stream,
+                stream_chunk_handler,
+            )
+        )
+        return "current answer"
+
+    monkeypatch.setattr(
+        cli,
+        "chat_answer_get",
+        fake_chat_answer_get,
+    )
+
+    result = cli.chat_run(
+        "current question",
+        session_name="test-session",
+    )
+
+    assert result is None
+    assert capsys.readouterr().out == "current answer\n"
+    assert calls == [
+        (
+            "current question",
+            "test-session",
+            None,
+            False,
+            None,
+        )
+    ]
+
+
+def test_chat_run_streams_chunks_and_prints_final_newline(
+    monkeypatch,
+    capsys,
+):
+    calls = []
+
+    def fake_chat_answer_get(
+        user_prompt,
+        session_name=None,
+        model_name=None,
+        stream=False,
+        stream_chunk_handler=None,
+    ):
+        calls.append(
+            (
+                user_prompt,
+                session_name,
+                model_name,
+                stream,
+            )
+        )
+
+        assert stream_chunk_handler is not None
+        stream_chunk_handler("current ")
+        stream_chunk_handler("answer")
+        return "current answer"
+
+    monkeypatch.setattr(
+        cli,
+        "chat_answer_get",
+        fake_chat_answer_get,
+    )
+
+    result = cli.chat_run(
+        "current question",
+        session_name="test-session",
+        model_name="test-model",
+        stream=True,
+    )
+
+    assert result is None
+    assert capsys.readouterr().out == "current answer\n"
+    assert calls == [
+        (
+            "current question",
+            "test-session",
+            "test-model",
+            True,
+        )
     ]
