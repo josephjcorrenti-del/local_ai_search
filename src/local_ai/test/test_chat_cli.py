@@ -3,14 +3,13 @@ from __future__ import annotations
 from local_ai import chat, cli
 
 
-def test_prompt_run_uses_plain_prompt_and_prints_answer(
+def test_prompt_answer_get_uses_orchestrator_prompt(
     monkeypatch,
-    capsys,
 ):
     calls = []
 
     monkeypatch.setattr(
-        cli,
+        chat,
         "ollama_ensure_running",
         lambda: calls.append(("ollama_ensure_running",)),
     )
@@ -23,18 +22,17 @@ def test_prompt_run_uses_plain_prompt_and_prints_answer(
             }
         }
 
-    monkeypatch.setattr(cli, "ollama_chat", fake_ollama_chat)
+    monkeypatch.setattr(chat, "ollama_chat", fake_ollama_chat)
 
-    result = cli.prompt_run("plain question")
+    answer = chat.prompt_answer_get("orchestrator prompt")
 
-    assert result is None
-    assert capsys.readouterr().out == "plain answer\n"
+    assert answer == "plain answer"
     assert calls == [
         ("ollama_ensure_running",),
         (
             "ollama_chat",
             {
-                "model": cli.CONFIG.chat_model_name,
+                "model": chat.CONFIG.chat_model_name,
                 "stream": False,
                 "messages": [
                     {
@@ -46,12 +44,35 @@ def test_prompt_run_uses_plain_prompt_and_prints_answer(
                     },
                     {
                         "role": "user",
-                        "content": "plain question",
+                        "content": "orchestrator prompt",
                     },
                 ],
             },
         ),
     ]
+
+
+def test_prompt_run_prints_returned_answer(
+    monkeypatch,
+    capsys,
+):
+    calls = []
+
+    def fake_prompt_answer_get(prompt):
+        calls.append(prompt)
+        return "plain answer"
+
+    monkeypatch.setattr(
+        cli,
+        "prompt_answer_get",
+        fake_prompt_answer_get,
+    )
+
+    result = cli.prompt_run("plain question")
+
+    assert result is None
+    assert capsys.readouterr().out == "plain answer\n"
+    assert calls == ["plain question"]
 
 
 def test_chat_answer_get_uses_history_and_persists_turn(

@@ -29,7 +29,7 @@ import sys
 import time
 from typing import Callable
 
-from local_ai.chat import chat_answer_get
+from local_ai.chat import chat_answer_get, prompt_answer_get
 from local_ai.config import CONFIG
 from local_ai.doctor import doctor_run
 from local_ai.fs import fs_content_window_get, fs_read
@@ -80,26 +80,9 @@ from local_ai.workspace import (
 
 
 def prompt_run(user_prompt: str) -> None:
-    """Run a one-off prompt against the local model."""
-    ollama_ensure_running()
-
-    payload = {
-        "model": CONFIG.chat_model_name,
-        "stream": False,
-        "messages": [
-            {
-                "role": "system",
-                "content": (
-                    "You are a concise local assistant. "
-                    "Answer clearly and directly."
-                ),
-            },
-            {"role": "user", "content": user_prompt},
-        ],
-    }
-
-    result = ollama_chat(payload)
-    print(result["message"]["content"])
+    """Run a one-off prompt and print the returned answer."""
+    answer = prompt_answer_get(user_prompt)
+    print(answer)
 
 
 def json_run() -> None:

@@ -61,3 +61,32 @@ def chat_answer_get(
     session_append("assistant", answer, session_name)
 
     return answer
+
+
+def prompt_answer_get(
+    prompt: str,
+    model_name: str | None = None,
+) -> str:
+    """Run an orchestrator-supplied prompt and return the answer."""
+    ollama_ensure_running()
+
+    payload = {
+        "model": model_name or CONFIG.chat_model_name,
+        "stream": False,
+        "messages": [
+            {
+                "role": "system",
+                "content": (
+                    "You are a concise local assistant. "
+                    "Answer clearly and directly."
+                ),
+            },
+            {
+                "role": "user",
+                "content": prompt,
+            },
+        ],
+    }
+
+    result = ollama_chat(payload)
+    return result["message"]["content"]
