@@ -56,8 +56,13 @@ def test_run_query_calls_local_ai(monkeypatch):
 
     calls = []
 
-    def fake_ask(prompt: str) -> str:
-        calls.append(prompt)
+    def fake_ask(
+            prompt: str,
+            *,
+            session_name=None,
+            user_content=None,
+    ) -> str:
+        calls.append((prompt, session_name, user_content))
         return "answer text"
 
     monkeypatch.setattr(prompt_builder.local_ai, "ask", fake_ask)
@@ -78,8 +83,12 @@ def test_run_query_calls_local_ai(monkeypatch):
 
     assert answer == "answer text"
     assert len(calls) == 1
-    assert "Question: What is SQLite?" in calls[0]
-    assert "SQLite is an embedded database." in calls[0]
+    prompt, session_name, user_content = calls[0]
+
+    assert "Question: What is SQLite?" in prompt
+    assert "SQLite is an embedded database." in prompt
+    assert session_name is None
+    assert user_content == "What is SQLite?"
 
 
 def test_run_query_uses_build_prompt(monkeypatch):
@@ -91,8 +100,20 @@ def test_run_query_uses_build_prompt(monkeypatch):
         calls.append(("build_prompt", query, evidence, session_name))
         return "built prompt"
 
-    def fake_ask(prompt: str) -> str:
-        calls.append(("ask", prompt))
+    def fake_ask(
+        prompt: str,
+        *,
+        session_name=None,
+        user_content=None,
+    ) -> str:
+        calls.append(
+            (
+                "ask",
+                prompt,
+                session_name,
+                user_content,
+            )
+        )
         return "answer text"
 
     monkeypatch.setattr(prompt_builder, "build_prompt", fake_build_prompt)
@@ -104,7 +125,12 @@ def test_run_query_uses_build_prompt(monkeypatch):
 
     assert calls == [
         ("build_prompt", "question text", evidence, None),
-        ("ask", "built prompt"),
+        (
+            "ask",
+            "built prompt",
+            None,
+            "question text",
+        ),
     ]
 
     def test_run_query_from_evidence_path_loads_evidence(monkeypatch):
@@ -165,7 +191,7 @@ def test_run_query_uses_build_prompt(monkeypatch):
         ]
 
 
-def test_run_query_appends_to_named_session(monkeypatch):
+def test_run_query_delegates_named_session_persistence(monkeypatch):
     from local_ai_search import prompt_builder
 
     calls = []
@@ -176,29 +202,38 @@ def test_run_query_appends_to_named_session(monkeypatch):
         lambda query, evidence, session_name=None: "built prompt",
     )
 
+    def fake_ask(
+        prompt,
+        *,
+        session_name=None,
+        user_content=None,
+    ):
+        calls.append(
+            (
+                prompt,
+                session_name,
+                user_content,
+            )
+        )
+        return "answer text"
+
     monkeypatch.setattr(
         prompt_builder.local_ai,
         "ask",
-        lambda prompt: "answer text",
+        fake_ask,
     )
 
-    def fake_session_append(role, content, session_name=None):
-        calls.append((role, content, session_name))
-
-    monkeypatch.setattr(prompt_builder, "session_append", fake_session_append)
-
-    evidence = {"results": []}
-
-    assert (
-        prompt_builder.run_query(
-            "question text",
-            evidence,
-            session_name="api-test-session",
-        )
-        == "answer text"
+    answer = prompt_builder.run_query(
+        "question text",
+        {"results": []},
+        session_name="api-test-session",
     )
 
+    assert answer == "answer text"
     assert calls == [
-        ("user", "question text", "api-test-session"),
-        ("assistant", "answer text", "api-test-session"),
+        (
+            "built prompt",
+            "api-test-session",
+            "question text",
+        )
     ]

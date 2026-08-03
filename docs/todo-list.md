@@ -281,11 +281,11 @@
 [x] define one reusable local_ai chat operation that returns an answer without printing
 [ ] allow the local_ai chat operation to accept orchestrator-supplied instructions or evidence context
 [ ] keep session-history loading inside the canonical local_ai chat operation
-[ ] keep user and assistant message persistence inside the canonical local_ai chat operation
+[x] keep user and assistant message persistence inside the canonical local_ai operation
 [ ] expose usable session context through local_ai without requiring local_ai_search to interpret stored summary shape
 [ ] route integrated CLI and API queries through the canonical local_ai chat operation
 [ ] route ai_only CLI and API queries through the same canonical local_ai chat operation
-[ ] remove direct session_append ownership from local_ai_search
+[x] remove direct session_append ownership from local_ai_search
 [ ] remove direct session_turns_get use from local_ai_search prompt execution
 [x] treat current local_ai_search query behavior as authoritative when package behavior conflicts
 [ ] preserve current integrated, ai_only, web_only, and insufficient-context behavior during ownership changes

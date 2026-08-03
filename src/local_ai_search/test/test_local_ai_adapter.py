@@ -54,3 +54,37 @@ def test_ask_raises_on_failure(monkeypatch):
         assert str(exc) == "model failed"
     else:
         raise AssertionError("expected RuntimeError")
+
+
+def test_ask_passes_session_persistence_metadata(monkeypatch):
+    calls = []
+
+    def fake_run(command, *, check, capture_output, text):
+        calls.append(command)
+        return subprocess.CompletedProcess(
+            args=command,
+            returncode=0,
+            stdout="answer text\n",
+            stderr="",
+        )
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    answer = local_ai.ask(
+        "evidence-aware prompt",
+        session_name="api-test-session",
+        user_content="question text",
+    )
+
+    assert answer == "answer text"
+    assert calls == [
+        [
+            "local-ai",
+            "prompt",
+            "evidence-aware prompt",
+            "--session",
+            "api-test-session",
+            "--user-content",
+            "question text",
+        ]
+    ]

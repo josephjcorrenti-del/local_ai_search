@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any
 
 
-from local_ai.memory import session_append, session_turns_get
+from local_ai.memory import session_turns_get
 from local_ai_search.adapters import local_ai
 from local_ai_search.config import EVIDENCE_LIMIT, EVIDENCE_MAX_CHARS
 from local_ai_search.evidence import load_evidence_from_local_search
@@ -87,12 +87,11 @@ def run_query(
         session_name=session_name,
     )
 
-    answer = local_ai.ask(prompt)
-
-    session_append("user", query, session_name)
-    session_append("assistant", answer, session_name)
-
-    return answer
+    return local_ai.ask(
+        prompt,
+        session_name=session_name,
+        user_content=query,
+    )
 
 
 def run_query_from_evidence_path(

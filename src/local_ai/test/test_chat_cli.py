@@ -58,8 +58,21 @@ def test_prompt_run_prints_returned_answer(
 ):
     calls = []
 
-    def fake_prompt_answer_get(prompt):
-        calls.append(prompt)
+    def fake_prompt_answer_get(
+        prompt,
+        model_name=None,
+        *,
+        session_name=None,
+        user_content=None,
+    ):
+        calls.append(
+            (
+                prompt,
+                model_name,
+                session_name,
+                user_content,
+            )
+        )
         return "plain answer"
 
     monkeypatch.setattr(
@@ -72,7 +85,14 @@ def test_prompt_run_prints_returned_answer(
 
     assert result is None
     assert capsys.readouterr().out == "plain answer\n"
-    assert calls == ["plain question"]
+    assert calls == [
+        (
+            "plain question",
+            None,
+            None,
+            None,
+        )
+    ]
 
 
 def test_chat_answer_get_uses_history_and_persists_turn(
@@ -282,4 +302,46 @@ def test_chat_run_streams_chunks_and_prints_final_newline(
             "test-model",
             True,
         )
+    ]
+
+
+def test_prompt_answer_get_persists_original_user_content(
+    monkeypatch,
+):
+    calls = []
+
+    monkeypatch.setattr(
+        chat,
+        "ollama_ensure_running",
+        lambda: None,
+    )
+    monkeypatch.setattr(
+        chat,
+        "ollama_chat",
+        lambda payload: {
+            "message": {
+                "content": "answer text",
+            }
+        },
+    )
+
+    def fake_session_append(role, content, session_name):
+        calls.append((role, content, session_name))
+
+    monkeypatch.setattr(
+        chat,
+        "session_append",
+        fake_session_append,
+    )
+
+    answer = chat.prompt_answer_get(
+        "full evidence-aware prompt",
+        session_name="api-test-session",
+        user_content="question text",
+    )
+
+    assert answer == "answer text"
+    assert calls == [
+        ("user", "question text", "api-test-session"),
+        ("assistant", "answer text", "api-test-session"),
     ]

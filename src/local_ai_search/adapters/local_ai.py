@@ -13,9 +13,22 @@ def run_doctor() -> int:
     return run_external_command(["local-ai", "doctor"])
 
 
-def ask(prompt: str) -> str:
+def ask(
+    prompt: str,
+    *,
+    session_name: str | None = None,
+    user_content: str | None = None,
+) -> str:
+    command = ["local-ai", "prompt", prompt]
+
+    if session_name is not None:
+        command.extend(["--session", session_name])
+
+    if user_content is not None:
+        command.extend(["--user-content", user_content])
+
     result = subprocess.run(
-        ["local-ai", "prompt", prompt],
+        command,
         check=False,
         capture_output=True,
         text=True,

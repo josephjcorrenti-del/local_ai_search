@@ -66,8 +66,11 @@ def chat_answer_get(
 def prompt_answer_get(
     prompt: str,
     model_name: str | None = None,
+    *,
+    session_name: str | None = None,
+    user_content: str | None = None,
 ) -> str:
-    """Run an orchestrator-supplied prompt and return the answer."""
+    """Run an orchestrator-supplied prompt and optionally persist the turn."""
     ollama_ensure_running()
 
     payload = {
@@ -89,4 +92,10 @@ def prompt_answer_get(
     }
 
     result = ollama_chat(payload)
-    return result["message"]["content"]
+    answer = result["message"]["content"]
+
+    if user_content is not None:
+        session_append("user", user_content, session_name)
+        session_append("assistant", answer, session_name)
+
+    return answer

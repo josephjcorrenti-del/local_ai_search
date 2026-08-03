@@ -79,9 +79,17 @@ from local_ai.workspace import (
 )
 
 
-def prompt_run(user_prompt: str) -> None:
+def prompt_run(
+    user_prompt: str,
+    session_name: str | None = None,
+    user_content: str | None = None,
+) -> None:
     """Run a one-off prompt and print the returned answer."""
-    answer = prompt_answer_get(user_prompt)
+    answer = prompt_answer_get(
+        user_prompt,
+        session_name=session_name,
+        user_content=user_content,
+    )
     print(answer)
 
 
@@ -262,7 +270,11 @@ def clear_run(session_name: str | None = None) -> None:
 
 
 def prompt_command_run(args: argparse.Namespace) -> None:
-    prompt_run(args.text)
+    prompt_run(
+        args.text,
+        session_name=args.session,
+        user_content=args.user_content,
+    )
 
 
 def json_command_run(args: argparse.Namespace) -> None:
@@ -894,6 +906,17 @@ def parser_build() -> argparse.ArgumentParser:
 
     p_prompt = subparsers.add_parser("prompt", help="Run a plain prompt")
     p_prompt.add_argument("text", help="Prompt text")
+    
+    p_prompt.add_argument(
+        "--session",
+        default=None,
+        help="Session receiving the persisted turn",
+    )
+    p_prompt.add_argument(
+        "--user-content",
+        default=None,
+        help="Original user content to persist with the answer",
+    )
 
     subparsers.add_parser("json", help="Run structured JSON test")
 
