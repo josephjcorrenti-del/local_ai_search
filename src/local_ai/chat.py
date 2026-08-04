@@ -17,6 +17,8 @@ def chat_answer_get(
     model_name: str | None = None,
     stream: bool = False,
     stream_chunk_handler: Callable[[str], None] | None = None,
+    *,
+    orchestrator_context: str | None = None,
 ) -> str:
     """Run a session-aware chat request and return the answer."""
     ollama_ensure_running()
@@ -33,6 +35,14 @@ def chat_answer_get(
             ),
         }
     ]
+
+    if orchestrator_context is not None:
+        messages.append(
+            {
+                "role": "system",
+                "content": orchestrator_context,
+            }
+        )
 
     messages.extend(session_turns_get(session_name))
     messages.append({"role": "user", "content": user_prompt})

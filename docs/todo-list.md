@@ -279,7 +279,7 @@
 [x] keep retrieval, intent routing, evidence shaping, and evidence-aware prompt policy in local_ai_search
 [x] keep navigation ordering and API response shaping in local_ai_search
 [x] define one reusable local_ai chat operation that returns an answer without printing
-[ ] allow the local_ai chat operation to accept orchestrator-supplied instructions or evidence context
+[x] allow the local_ai chat operation to accept orchestrator-supplied instructions or evidence context
 [ ] keep session-history loading inside the canonical local_ai chat operation
 [x] keep user and assistant message persistence inside the canonical local_ai operation
 [ ] expose usable session context through local_ai without requiring local_ai_search to interpret stored summary shape

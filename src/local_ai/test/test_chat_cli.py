@@ -205,6 +205,92 @@ def test_chat_answer_get_uses_history_and_persists_turn(
     ]
 
 
+def test_chat_answer_get_accepts_orchestrator_context(
+    monkeypatch,
+):
+    payloads = []
+
+    monkeypatch.setattr(
+        chat,
+        "ollama_ensure_running",
+        lambda: None,
+    )
+    monkeypatch.setattr(
+        chat,
+        "session_turns_get",
+        lambda session_name: [
+            {
+                "role": "user",
+                "content": "earlier question",
+            },
+            {
+                "role": "assistant",
+                "content": "earlier answer",
+            },
+        ],
+    )
+
+    def fake_ollama_chat(payload):
+        payloads.append(payload)
+        return {
+            "message": {
+                "content": "current answer",
+            }
+        }
+
+    monkeypatch.setattr(
+        chat,
+        "ollama_chat",
+        fake_ollama_chat,
+    )
+    monkeypatch.setattr(
+        chat,
+        "session_append",
+        lambda role, content, session_name: None,
+    )
+
+    answer = chat.chat_answer_get(
+        "current question",
+        session_name="test-session",
+        orchestrator_context=(
+            "Use the supplied evidence when relevant.\n\n"
+            "Evidence: SQLite is an embedded database."
+        ),
+    )
+
+    assert answer == "current answer"
+    assert payloads[0]["messages"] == [
+        {
+            "role": "system",
+            "content": (
+                "You are a concise local assistant. "
+                "Help with general questions, coding, debugging, "
+                "and technical reasoning. "
+                "Be practical and direct."
+            ),
+        },
+        {
+            "role": "system",
+            "content": (
+                "Use the supplied evidence when relevant.\n\n"
+                "Evidence: SQLite is an embedded database."
+            ),
+        },
+        {
+            "role": "user",
+            "content": "earlier question",
+        },
+        {
+            "role": "assistant",
+            "content": "earlier answer",
+        },
+        {
+            "role": "user",
+            "content": "current question",
+        },
+    ]
+
+
 def test_chat_run_prints_returned_answer(
     monkeypatch,
     capsys,
