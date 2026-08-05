@@ -303,6 +303,8 @@ def test_chat_run_prints_returned_answer(
         model_name=None,
         stream=False,
         stream_chunk_handler=None,
+        *,
+        orchestrator_context=None,
     ):
         calls.append(
             (
@@ -351,6 +353,8 @@ def test_chat_run_streams_chunks_and_prints_final_newline(
         model_name=None,
         stream=False,
         stream_chunk_handler=None,
+        *,
+        orchestrator_context=None,
     ):
         calls.append(
             (
@@ -358,13 +362,14 @@ def test_chat_run_streams_chunks_and_prints_final_newline(
                 session_name,
                 model_name,
                 stream,
+                stream_chunk_handler,
             )
         )
 
-        assert stream_chunk_handler is not None
-        stream_chunk_handler("current ")
-        stream_chunk_handler("answer")
-        return "current answer"
+        stream_chunk_handler("first")
+        stream_chunk_handler(" second")
+
+        return "first second"
 
     monkeypatch.setattr(
         cli,
@@ -380,15 +385,22 @@ def test_chat_run_streams_chunks_and_prints_final_newline(
     )
 
     assert result is None
-    assert capsys.readouterr().out == "current answer\n"
-    assert calls == [
-        (
-            "current question",
-            "test-session",
-            "test-model",
-            True,
-        )
-    ]
+    assert capsys.readouterr().out == "first second\n"
+    assert len(calls) == 1
+
+    (
+        user_prompt,
+        session_name,
+        model_name,
+        stream,
+        stream_chunk_handler,
+    ) = calls[0]
+
+    assert user_prompt == "current question"
+    assert session_name == "test-session"
+    assert model_name == "test-model"
+    assert stream is True
+    assert callable(stream_chunk_handler)
 
 
 def test_prompt_answer_get_persists_original_user_content(
@@ -421,7 +433,7 @@ def test_prompt_answer_get_persists_original_user_content(
     )
 
     answer = chat.prompt_answer_get(
-        "full evidence-aware prompt",
+        "built prompt",
         session_name="api-test-session",
         user_content="question text",
     )
@@ -430,4 +442,50 @@ def test_prompt_answer_get_persists_original_user_content(
     assert calls == [
         ("user", "question text", "api-test-session"),
         ("assistant", "answer text", "api-test-session"),
+    ]
+
+
+def test_chat_run_passes_orchestrator_context(
+    monkeypatch,
+    capsys,
+):
+    calls = []
+
+    def fake_chat_answer_get(
+        user_prompt,
+        session_name=None,
+        model_name=None,
+        stream=False,
+        stream_chunk_handler=None,
+        *,
+        orchestrator_context=None,
+    ):
+        calls.append(
+            (
+                user_prompt,
+                session_name,
+                orchestrator_context,
+            )
+        )
+        return "current answer"
+
+    monkeypatch.setattr(
+        cli,
+        "chat_answer_get",
+        fake_chat_answer_get,
+    )
+
+    cli.chat_run(
+        "current question",
+        session_name="test-session",
+        orchestrator_context="evidence context",
+    )
+
+    assert capsys.readouterr().out == "current answer\n"
+    assert calls == [
+        (
+            "current question",
+            "test-session",
+            "evidence context",
+        )
     ]

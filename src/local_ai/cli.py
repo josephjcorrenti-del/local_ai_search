@@ -240,6 +240,8 @@ def chat_run(
     session_name: str | None = None,
     model_name: str | None = None,
     stream: bool = False,
+    *,
+    orchestrator_context: str | None = None,
 ) -> None:
     """Run chat through the reusable chat operation and print its output."""
     if stream:
@@ -252,6 +254,7 @@ def chat_run(
             model_name=model_name,
             stream=True,
             stream_chunk_handler=print_stream_chunk,
+            orchestrator_context=orchestrator_context,
         )
         print()
         return
@@ -260,6 +263,7 @@ def chat_run(
         user_prompt,
         session_name=session_name,
         model_name=model_name,
+        orchestrator_context=orchestrator_context,
     )
     print(answer)
 
@@ -286,7 +290,11 @@ def tool_command_run(args: argparse.Namespace) -> None:
 
 
 def chat_command_run(args: argparse.Namespace) -> None:
-    chat_run(args.text, args.session)
+    chat_run(
+        args.text,
+        args.session,
+        orchestrator_context=args.orchestrator_context,
+    )
 
 
 def clear_command_run(args: argparse.Namespace) -> None:
@@ -926,6 +934,12 @@ def parser_build() -> argparse.ArgumentParser:
     p_chat = subparsers.add_parser("chat", help="Run chat with session memory")
     p_chat.add_argument("text", help="Chat prompt text")
     p_chat.add_argument("--session", default=None, help="Session name")
+
+    p_chat.add_argument(
+        "--orchestrator-context",
+        default=None,
+        help="Additional orchestrator instructions or evidence context",
+    )
 
     p_clear = subparsers.add_parser("clear", help="Clear session memory")
     p_clear.add_argument("--session", default=None, help="Session name")

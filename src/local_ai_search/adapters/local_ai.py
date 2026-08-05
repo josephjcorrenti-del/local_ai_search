@@ -41,3 +41,38 @@ def ask(
         )
 
     return result.stdout.strip()
+
+
+def chat(
+    user_prompt: str,
+    *,
+    session_name: str | None = None,
+    orchestrator_context: str | None = None,
+) -> str:
+    command = ["local-ai", "chat", user_prompt]
+
+    if session_name is not None:
+        command.extend(["--session", session_name])
+
+    if orchestrator_context is not None:
+        command.extend(
+            [
+                "--orchestrator-context",
+                orchestrator_context,
+            ]
+        )
+
+    result = subprocess.run(
+        command,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    if result.returncode != 0:
+        raise RuntimeError(
+            result.stderr.strip()
+            or "local-ai chat failed"
+        )
+
+    return result.stdout.strip()

@@ -88,3 +88,39 @@ def test_ask_passes_session_persistence_metadata(monkeypatch):
             "question text",
         ]
     ]
+
+
+def test_chat_passes_session_and_orchestrator_context(
+    monkeypatch,
+):
+    calls = []
+
+    def fake_run(command, *, check, capture_output, text):
+        calls.append(command)
+        return subprocess.CompletedProcess(
+            args=command,
+            returncode=0,
+            stdout="answer text\n",
+            stderr="",
+        )
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    answer = local_ai.chat(
+        "question text",
+        session_name="api-test-session",
+        orchestrator_context="evidence context",
+    )
+
+    assert answer == "answer text"
+    assert calls == [
+        [
+            "local-ai",
+            "chat",
+            "question text",
+            "--session",
+            "api-test-session",
+            "--orchestrator-context",
+            "evidence context",
+        ]
+    ]
