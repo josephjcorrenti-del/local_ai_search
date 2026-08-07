@@ -204,15 +204,24 @@ def test_top_level_query_ai_only(monkeypatch, capsys):
 
     calls = []
 
-    def fake_ask(prompt):
-        calls.append(prompt)
+    def fake_chat(prompt, *, session_name=None):
+        calls.append((prompt, session_name))
         return "answer text"
 
-    monkeypatch.setattr(local_ai, "ask", fake_ask)
-    monkeypatch.setattr("sys.argv", ["local-ai-search", "what is sqlite?", "--ai-only"])
+    monkeypatch.setattr(local_ai, "chat", fake_chat)
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "local-ai-search",
+            "what is sqlite?",
+            "--ai-only",
+            "--session",
+            "api-test",
+        ],
+    )
 
     assert cli.main() == 0
-    assert calls == ["what is sqlite?"]
+    assert calls == [("what is sqlite?", "api-test")]
     assert "answer text" in capsys.readouterr().out
 
 

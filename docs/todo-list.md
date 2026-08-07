@@ -285,7 +285,7 @@
 [x] expose usable session context through local_ai without requiring local_ai_search to interpret stored summary shape
 [x] bug: session_summarize() returns before saving its generated summary, making the persistence block unreachable
 [x] route integrated CLI and API queries through the canonical local_ai chat operation
-[ ] route ai_only CLI and API queries through the same canonical local_ai chat operation
+[x] route ai_only CLI and API queries through the same canonical local_ai chat operation
 [x] remove direct session_append ownership from local_ai_search
 [x] remove direct session_turns_get use from local_ai_search prompt execution
 [x] treat current local_ai_search query behavior as authoritative when package behavior conflicts

@@ -116,7 +116,10 @@ def query(request: QueryRequest) -> QueryResponse:
     retrieval = None
 
     if request.mode == "ai_only":
-        answer = local_ai.ask(request.query)
+        answer = local_ai.chat(
+            request.query,
+            session_name=session_name,
+        )
         retrieval = {"status": "skipped", "reason": decision.reason}
 
     elif decision.route == "insufficient_context":

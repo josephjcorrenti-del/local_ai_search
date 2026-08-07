@@ -37,17 +37,21 @@ def test_api_query_ai_only_calls_local_ai(monkeypatch):
 
     calls = []
 
-    def fake_ask(prompt):
-        calls.append(prompt)
+    def fake_chat(prompt, *, session_name=None):
+        calls.append((prompt, session_name))
         return "sqlite answer"
 
-    monkeypatch.setattr(routes.local_ai, "ask", fake_ask)
+    monkeypatch.setattr(routes.local_ai, "chat", fake_chat)
 
     client = TestClient(create_app())
 
     response = client.post(
         "/api/v1/query",
-        json={"query": "what is sqlite?", "mode": "ai_only"},
+        json={
+            "query": "what is sqlite?",
+            "mode": "ai_only",
+            "session": "api-test",
+        },
     )
 
     assert response.status_code == 200
@@ -56,10 +60,11 @@ def test_api_query_ai_only_calls_local_ai(monkeypatch):
     assert data["ok"] is True
     assert data["mode"] == "ai_only"
     assert data["query"] == "what is sqlite?"
+    assert data["session"] == "api-test"
     assert data["answer"] == "sqlite answer"
     assert data["evidence"] is None
     assert isinstance(data["elapsed_ms"], int | float)
-    assert calls == ["what is sqlite?"]
+    assert calls == [("what is sqlite?", "api-test")]
 
 
 def test_api_query_web_only_returns_evidence(monkeypatch):

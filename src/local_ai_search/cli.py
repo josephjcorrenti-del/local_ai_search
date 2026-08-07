@@ -302,7 +302,10 @@ def cmd_local_search(args: argparse.Namespace) -> int:
 
 def cmd_query(args: argparse.Namespace) -> int:
     if args.ai_only:
-        answer = local_ai.ask(args.query)
+        answer = local_ai.chat(
+            args.query,
+            session_name=args.session,
+        )
         print(answer)
         return 0
 
