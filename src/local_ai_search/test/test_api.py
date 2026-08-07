@@ -987,3 +987,86 @@ def test_api_query_insufficient_context_skips_evidence_and_model(monkeypatch):
         "reason": "conversation follow-up without available session context",
     }
     assert calls == []
+
+
+def test_api_non_integrated_workspace_queries_do_not_associate_session(monkeypatch):
+    from local_ai_search.api import routes
+    from local_ai_search.intent_gate import IntentDecision
+
+    calls = []
+
+    def fake_decide_intent(
+        query,
+        *,
+        mode="integrated",
+        session_name=None,
+    ):
+        if query == "missing context":
+            return IntentDecision(
+                route="insufficient_context",
+                reason="conversation follow-up without available session context",
+            )
+
+        return IntentDecision(
+            route="retrieve",
+            reason="test retrieval",
+        )
+
+    monkeypatch.setattr(routes, "decide_intent", fake_decide_intent)
+    monkeypatch.setattr(
+        routes.local_ai,
+        "chat",
+        lambda prompt, *, session_name=None: "AI answer",
+    )
+    monkeypatch.setattr(
+        routes,
+        "resolve_evidence",
+        lambda query, **kwargs: {"results": []},
+    )
+    monkeypatch.setattr(
+        routes,
+        "workspace_session_add",
+        lambda workspace_name, session_name: calls.append(
+            (
+                "workspace_session_add",
+                workspace_name,
+                session_name,
+            )
+        ),
+    )
+
+    client = TestClient(create_app())
+
+    requests = [
+        {
+            "query": "AI-only question",
+            "mode": "ai_only",
+            "workspace": "middleware-test",
+            "session": "workspace-chat",
+        },
+        {
+            "query": "web-only question",
+            "mode": "web_only",
+            "workspace": "middleware-test",
+            "session": "workspace-chat",
+        },
+        {
+            "query": "missing context",
+            "mode": "integrated",
+            "workspace": "middleware-test",
+            "session": "workspace-chat",
+        },
+    ]
+
+    for request in requests:
+        data = assert_success(
+            client.post(
+                "/api/v1/query",
+                json=request,
+            )
+        )
+
+        assert data["workspace"] == "middleware-test"
+        assert data["session"] == "workspace-chat"
+
+    assert calls == []
