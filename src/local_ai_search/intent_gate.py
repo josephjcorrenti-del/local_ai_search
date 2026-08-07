@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal
 
-from local_ai.memory import session_load, session_turns_get
+from local_ai.memory import session_context_get
 
 
 @dataclass(frozen=True)
@@ -62,11 +62,8 @@ def session_context_available(session_name: str | None) -> bool:
     if not session_name:
         return False
 
-    if session_turns_get(session_name):
-        return True
-
-    session = session_load(session_name)
-    return bool(session.get("summary"))
+    context = session_context_get(session_name)
+    return bool(context["available"])
 
 
 def decide_intent(

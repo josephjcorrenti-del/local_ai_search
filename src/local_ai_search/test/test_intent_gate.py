@@ -45,13 +45,23 @@ def test_integrated_defaults_to_retrieval():
     assert decision.needs_retrieval is True
 
 
-def test_session_followup_skips_retrieval_when_session_has_turns(monkeypatch):
+def test_session_followup_uses_available_turn_context(monkeypatch):
     from local_ai_search import intent_gate
 
     monkeypatch.setattr(
         intent_gate,
-        "session_turns_get",
-        lambda session_name: [{"role": "user", "content": "SQLite"}],
+        "session_context_get",
+        lambda session_name: {
+            "session": session_name,
+            "summary": None,
+            "turns": [
+                {
+                    "role": "user",
+                    "content": "My favorite database is SQLite.",
+                }
+            ],
+            "available": True,
+        },
     )
 
     decision = intent_gate.decide_intent(
@@ -64,34 +74,18 @@ def test_session_followup_skips_retrieval_when_session_has_turns(monkeypatch):
     assert decision.needs_retrieval is False
 
 
-def test_session_followup_uses_summary_as_context_fallback(monkeypatch):
+def test_session_followup_uses_available_summary_context(monkeypatch):
     from local_ai_search import intent_gate
 
-    monkeypatch.setattr(intent_gate, "session_turns_get", lambda session_name: [])
     monkeypatch.setattr(
         intent_gate,
-        "session_load",
-        lambda session_name: {"summary": {"text": "User likes SQLite."}},
-    )
-
-    decision = intent_gate.decide_intent(
-        "what database did I just tell you I liked?",
-        mode="integrated",
-        session_name="api-test",
-    )
-
-    assert decision.route == "model_only"
-    assert decision.needs_retrieval is False
-
-
-def test_session_followup_uses_summary_as_context_fallback(monkeypatch):
-    from local_ai_search import intent_gate
-
-    monkeypatch.setattr(intent_gate, "session_turns_get", lambda session_name: [])
-    monkeypatch.setattr(
-        intent_gate,
-        "session_load",
-        lambda session_name: {"summary": {"text": "User likes SQLite."}},
+        "session_context_get",
+        lambda session_name: {
+            "session": session_name,
+            "summary": "The user said their favorite database is SQLite.",
+            "turns": [],
+            "available": True,
+        },
     )
 
     decision = intent_gate.decide_intent(

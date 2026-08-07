@@ -2,23 +2,23 @@ from __future__ import annotations
 
 from typing import Any
 
-from local_ai.memory import session_load, session_turns_get
+from local_ai.memory import session_context_get
 
 
 def build_session_evidence(session_name: str | None) -> dict[str, Any]:
-    turns = session_turns_get(session_name)
-    session = session_load(session_name)
+    context = session_context_get(session_name)
+    turns = context["turns"]
+    summary = context["summary"]
 
     results: list[dict[str, Any]] = []
 
-    summary = session.get("summary")
-    if isinstance(summary, dict) and summary.get("text"):
+    if isinstance(summary, str) and summary.strip():
         results.append(
             {
                 "rank": len(results) + 1,
-                "title": f"Session summary: {session.get('session')}",
-                "url": "",
-                "snippet": summary["text"],
+                "title": f"Session summary: {session_name}",
+                "url": None,
+                "snippet": summary,
                 "source_type": "session",
             }
         )
@@ -39,6 +39,6 @@ def build_session_evidence(session_name: str | None) -> dict[str, Any]:
         "artifact_type": "session_context",
         "provider": "local_ai",
         "query": None,
-        "session": session.get("session"),
+        "session": context["session"],
         "results": results,
     }

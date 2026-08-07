@@ -1,54 +1,47 @@
-from local_ai_search.session_evidence import build_session_evidence
+from local_ai_search.intent_gate import decide_intent
 
 
-def test_build_session_evidence_includes_recent_turns(monkeypatch):
-    from local_ai_search import session_evidence
+def test_web_only_requires_retrieval():
+    decision = decide_intent("anything", mode="web_only")
+    assert decision.needs_retrieval is True
 
-    monkeypatch.setattr(
-        session_evidence,
-        "session_turns_get",
-        lambda session_name: [
-            {"role": "user", "content": "My favorite database is SQLite."},
-            {"role": "assistant", "content": "Your favorite database is SQLite."},
-        ],
+
+def test_ai_only_skips_retrieval():
+    decision = decide_intent("anything", mode="ai_only")
+    assert decision.needs_retrieval is False
+
+
+def test_recent_query_requires_retrieval():
+    decision = decide_intent(
+        "what is the latest Apple release?",
+        mode="integrated",
+        session_name="api-test",
     )
-    monkeypatch.setattr(
-        session_evidence,
-        "session_load",
-        lambda session_name: {
-            "session": session_name,
-            "summary": None,
-        },
+    assert decision.needs_retrieval is True
+
+
+def test_session_followup_skips_retrieval_when_session_present():
+    decision = decide_intent(
+        "what database did I just tell you I liked?",
+        mode="integrated",
+        session_name="api-test",
     )
-
-    evidence = build_session_evidence("api-test")
-
-    assert evidence["artifact_type"] == "session_context"
-    assert evidence["provider"] == "local_ai"
-    assert evidence["session"] == "api-test"
-    assert evidence["results"][0]["source_type"] == "session"
-    assert evidence["results"][0]["snippet"] == "My favorite database is SQLite."
+    assert decision.needs_retrieval is False
 
 
-def test_build_session_evidence_includes_summary_before_turns(monkeypatch):
-    from local_ai_search import session_evidence
-
-    monkeypatch.setattr(
-        session_evidence,
-        "session_turns_get",
-        lambda session_name: [{"role": "user", "content": "Recent message"}],
-    )
-    monkeypatch.setattr(
-        session_evidence,
-        "session_load",
-        lambda session_name: {
-            "session": session_name,
-            "summary": {"text": "Older summary"},
-        },
+def test_session_followup_without_session_is_insufficient_context():
+    decision = decide_intent(
+        "what database did I just tell you I liked?",
+        mode="integrated",
+        session_name=None,
     )
 
-    evidence = build_session_evidence("api-test")
+    assert decision.route == "insufficient_context"
+    assert decision.needs_retrieval is False
 
-    assert evidence["results"][0]["title"] == "Session summary: api-test"
-    assert evidence["results"][0]["snippet"] == "Older summary"
-    assert evidence["results"][1]["snippet"] == "Recent message"
+
+def test_integrated_defaults_to_retrieval():
+    decision = decide_intent("what is sqlite?", mode="integrated")
+    assert decision.needs_retrieval is True
+
+

@@ -486,6 +486,28 @@ def _messages_last_timestamp_get(messages: list[dict[str, Any]]) -> str | None:
     return None
 
 
+def session_context_get(session_name: str) -> dict[str, object]:
+    """Return normalized, consumer-ready context for a session."""
+    session_data = session_load(session_name)
+
+    summary = session_data.get("summary")
+    summary_text = None
+
+    if isinstance(summary, dict):
+        stored_text = summary.get("text")
+        if isinstance(stored_text, str) and stored_text.strip():
+            summary_text = stored_text
+
+    turns = session_turns_get(session_name)
+
+    return {
+        "session": session_name,
+        "summary": summary_text,
+        "turns": turns,
+        "available": bool(summary_text or turns),
+    }
+
+
 # WHY:
 # Summarization keeps recent raw messages intact while compressing older
 # context into a stored summary. This preserves short-term chat continuity
