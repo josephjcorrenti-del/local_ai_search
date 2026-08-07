@@ -283,7 +283,7 @@
 [x] keep session-history loading inside the canonical local_ai chat operation
 [x] keep user and assistant message persistence inside the canonical local_ai operation
 [x] expose usable session context through local_ai without requiring local_ai_search to interpret stored summary shape
-[ ] bug: session_summarize() returns before saving its generated summary, making the persistence block unreachable
+[x] bug: session_summarize() returns before saving its generated summary, making the persistence block unreachable
 [x] route integrated CLI and API queries through the canonical local_ai chat operation
 [ ] route ai_only CLI and API queries through the same canonical local_ai chat operation
 [x] remove direct session_append ownership from local_ai_search

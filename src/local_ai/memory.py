@@ -580,10 +580,6 @@ def session_summarize(session_name: str) -> dict[str, object]:
             prompt,
             model_name=CONFIG.summary_model_name,
         )
-        return {
-            "changed": True,
-            "reason": "summarized",
-        }
     except RuntimeError as exc:
         log_event(
             "session.summarize.error",
@@ -612,3 +608,8 @@ def session_summarize(session_name: str) -> dict[str, object]:
         session=session_name,
         model=CONFIG.summary_model_name,
     )
+
+    return {
+        "changed": True,
+        "reason": "summarized",
+    }

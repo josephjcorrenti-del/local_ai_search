@@ -1,3 +1,5 @@
+from dataclasses import replace
+
 from local_ai import memory
 
 
@@ -91,3 +93,76 @@ def test_session_context_get_is_unavailable_without_context(monkeypatch):
         "turns": [],
         "available": False,
     }
+
+
+def test_session_summarize_persists_summary_and_recent_messages(monkeypatch):
+    session_data = {
+        "session": "api-test",
+        "created_at": "2026-08-01T00:00:00+00:00",
+        "updated_at": "2026-08-01T00:00:00+00:00",
+        "summary": None,
+        "messages": [
+            {"role": "user", "content": "older user message"},
+            {"role": "assistant", "content": "older assistant message"},
+            {"role": "user", "content": "recent user message"},
+            {"role": "assistant", "content": "recent assistant message"},
+        ],
+    }
+    saved = []
+
+    monkeypatch.setattr(
+        memory,
+        "CONFIG",
+        replace(
+            memory.CONFIG,
+            summary_keep_recent_messages=2,
+            summary_max_input_messages=12,
+            summary_max_input_chars=4000,
+        ),
+    )
+    monkeypatch.setattr(
+        memory,
+        "session_load",
+        lambda session_name: session_data,
+    )
+    monkeypatch.setattr(
+        memory,
+        "ollama_ensure_running",
+        lambda: None,
+    )
+    monkeypatch.setattr(
+        memory,
+        "ollama_generate",
+        lambda prompt, model_name: "Generated summary.",
+    )
+    monkeypatch.setattr(
+        memory,
+        "timestamp_now_get",
+        lambda: "2026-08-07T10:00:00+00:00",
+    )
+    monkeypatch.setattr(
+        memory,
+        "session_save",
+        lambda data, session_name: saved.append((data, session_name)),
+    )
+
+    result = memory.session_summarize("api-test")
+
+    assert result == {
+        "changed": True,
+        "reason": "summarized",
+    }
+    assert len(saved) == 1
+
+    saved_session, saved_name = saved[0]
+
+    assert saved_name == "api-test"
+    assert saved_session["summary"] == {
+        "text": "Generated summary.",
+        "updated_at": "2026-08-07T10:00:00+00:00",
+        "source_message_count": 4,
+    }
+    assert saved_session["messages"] == [
+        {"role": "user", "content": "recent user message"},
+        {"role": "assistant", "content": "recent assistant message"},
+    ]
