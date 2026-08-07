@@ -1070,3 +1070,37 @@ def test_api_non_integrated_workspace_queries_do_not_associate_session(monkeypat
         assert data["session"] == "workspace-chat"
 
     assert calls == []
+
+
+def test_api_query_ai_only_resolves_default_session(monkeypatch):
+    from local_ai_search.api import routes
+
+    calls = []
+
+    def fake_chat(prompt, *, session_name=None):
+        calls.append((prompt, session_name))
+        return "sqlite answer"
+
+    monkeypatch.setattr(routes.local_ai, "chat", fake_chat)
+
+    client = TestClient(create_app())
+
+    response = client.post(
+        "/api/v1/query",
+        json={
+            "query": "what is sqlite?",
+            "mode": "ai_only",
+        },
+    )
+
+    data = assert_success(response)
+
+    assert data["session"] == routes.CONFIG.default_session_name
+    assert data["answer"] == "sqlite answer"
+    assert data["evidence"] is None
+    assert calls == [
+        (
+            "what is sqlite?",
+            routes.CONFIG.default_session_name,
+        )
+    ]

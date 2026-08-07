@@ -411,3 +411,31 @@ def test_top_level_conversation_followup_without_context_returns_message(monkeyp
 
     captured = capsys.readouterr()
     assert "don't have enough conversation context" in captured.out
+
+
+def test_top_level_query_ai_only_uses_canonical_default_session(
+    monkeypatch,
+    capsys,
+):
+    from local_ai_search import cli
+    from local_ai_search.adapters import local_ai
+
+    calls = []
+
+    def fake_chat(prompt, *, session_name=None):
+        calls.append((prompt, session_name))
+        return "answer text"
+
+    monkeypatch.setattr(local_ai, "chat", fake_chat)
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "local-ai-search",
+            "what is sqlite?",
+            "--ai-only",
+        ],
+    )
+
+    assert cli.main() == 0
+    assert calls == [("what is sqlite?", None)]
+    assert "answer text" in capsys.readouterr().out

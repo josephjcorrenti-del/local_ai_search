@@ -291,7 +291,7 @@
 [x] treat current local_ai_search query behavior as authoritative when package behavior conflicts
 [x] preserve current integrated, ai_only, web_only, and insufficient-context behavior during ownership changes
 [x] preserve current workspace/session association behavior during ownership changes
-[ ] verify default and named sessions behave identically through CLI and API
+[x] verify default and named sessions behave identically through CLI and API
 [ ] add boundary tests proving local_ai_search delegates session lifecycle to local_ai
 [ ] audit local_ai_search AI model configuration for duplicated or unused local_ai runtime settings
 [ ] verify local_ai is the canonical owner of session lifecycle
