@@ -826,3 +826,164 @@ def test_api_missing_query_uses_structured_validation_contract():
         422,
         "validation_error",
     )
+
+
+def test_api_query_model_only_uses_session_context_without_web_retrieval(monkeypatch):
+    from local_ai_search.api import routes
+    from local_ai_search.intent_gate import IntentDecision
+
+    calls = []
+
+    decision = IntentDecision(
+        route="model_only",
+        reason="test session context",
+    )
+    session_evidence = {
+        "retrieval_version": 1,
+        "artifact_type": "session_context",
+        "provider": "local_ai",
+        "query": None,
+        "session": "api-test",
+        "results": [
+            {
+                "rank": 1,
+                "title": "Session user",
+                "url": "",
+                "snippet": "My favorite database is SQLite.",
+                "source_type": "session",
+            }
+        ],
+    }
+
+    monkeypatch.setattr(
+        routes,
+        "decide_intent",
+        lambda query, mode, session_name=None: decision,
+    )
+
+    def fake_resolve_evidence(
+        query,
+        *,
+        decision,
+        session_name=None,
+        workspace_name=None,
+        filesystem_root=None,
+        filesystem_files=None,
+        limit=None,
+        max_chars=None,
+    ):
+        calls.append(
+            (
+                "resolve_evidence",
+                query,
+                decision.route,
+                session_name,
+                workspace_name,
+            )
+        )
+        return session_evidence
+
+    monkeypatch.setattr(routes, "resolve_evidence", fake_resolve_evidence)
+    monkeypatch.setattr(
+        routes.prompt_builder,
+        "run_query",
+        lambda query, evidence, session_name=None: calls.append(
+            (
+                "run_query",
+                query,
+                evidence,
+                session_name,
+            )
+        )
+        or "SQLite",
+    )
+
+    client = TestClient(create_app())
+
+    response = client.post(
+        "/api/v1/query",
+        json={
+            "query": "what database did I just tell you I liked?",
+            "mode": "integrated",
+            "session": "api-test",
+        },
+    )
+
+    data = assert_success(response)
+
+    assert data["answer"] == "SQLite"
+    assert data["evidence"] == session_evidence
+    assert data["intent"] == {
+        "route": "model_only",
+        "reason": "test session context",
+    }
+    assert data["retrieval"] == {
+        "status": "used",
+        "reason": "test session context",
+    }
+    assert calls == [
+        (
+            "resolve_evidence",
+            "what database did I just tell you I liked?",
+            "model_only",
+            "api-test",
+            None,
+        ),
+        (
+            "run_query",
+            "what database did I just tell you I liked?",
+            session_evidence,
+            "api-test",
+        ),
+    ]
+
+
+def test_api_query_insufficient_context_skips_evidence_and_model(monkeypatch):
+    from local_ai_search.api import routes
+    from local_ai_search.intent_gate import IntentDecision
+
+    calls = []
+
+    monkeypatch.setattr(
+        routes,
+        "decide_intent",
+        lambda query, mode, session_name=None: IntentDecision(
+            route="insufficient_context",
+            reason="conversation follow-up without available session context",
+        ),
+    )
+    monkeypatch.setattr(
+        routes,
+        "resolve_evidence",
+        lambda *args, **kwargs: calls.append("resolve_evidence"),
+    )
+    monkeypatch.setattr(
+        routes.prompt_builder,
+        "run_query",
+        lambda *args, **kwargs: calls.append("run_query"),
+    )
+
+    client = TestClient(create_app())
+
+    response = client.post(
+        "/api/v1/query",
+        json={
+            "query": "what database did I just tell you I liked?",
+            "mode": "integrated",
+            "session": "empty-session",
+        },
+    )
+
+    data = assert_success(response)
+
+    assert data["answer"] is None
+    assert data["evidence"] is None
+    assert data["intent"] == {
+        "route": "insufficient_context",
+        "reason": "conversation follow-up without available session context",
+    }
+    assert data["retrieval"] == {
+        "status": "insufficient_context",
+        "reason": "conversation follow-up without available session context",
+    }
+    assert calls == []

@@ -289,7 +289,7 @@
 [x] remove direct session_append ownership from local_ai_search
 [x] remove direct session_turns_get use from local_ai_search prompt execution
 [x] treat current local_ai_search query behavior as authoritative when package behavior conflicts
-[ ] preserve current integrated, ai_only, web_only, and insufficient-context behavior during ownership changes
+[x] preserve current integrated, ai_only, web_only, and insufficient-context behavior during ownership changes
 [ ] preserve current workspace/session association behavior during ownership changes
 [ ] verify default and named sessions behave identically through CLI and API
 [ ] add boundary tests proving local_ai_search delegates session lifecycle to local_ai
