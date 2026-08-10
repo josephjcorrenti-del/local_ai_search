@@ -294,7 +294,7 @@
 [x] verify default and named sessions behave identically through CLI and API
 [x] add boundary tests proving local_ai_search delegates session lifecycle to local_ai
 [x] audit local_ai_search AI model configuration for duplicated or unused local_ai runtime settings
-[ ] verify local_ai is the canonical owner of session lifecycle
+[x] verify local_ai is the canonical owner of session lifecycle
 
 #### Validation
 
