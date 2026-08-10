@@ -9,7 +9,6 @@ from local_ai_search.config import (
     DEFAULT_SEARCH_PROVIDER,
     SUPPORTED_SEARCH_PROVIDERS,
     SearchConfig,
-    AIConfig,
     IntegrationConfig,
     default_config_text,
     load_config,
@@ -110,15 +109,6 @@ def test_reject_unsupported_provider():
             provider_url="http://localhost:8080",
             default_limit=10,
             timeout_seconds=20,
-        ),
-        ai=AIConfig(
-            ollama_base_url="http://127.0.0.1:11434",
-            request_timeout_seconds=120,
-            small_model="phi3:mini",
-            lightweight_model="phi3:mini",
-            large_model="qwen2.5-coder:3b",
-            chat_model="large_model",
-            summary_model="lightweight_model",
         ),
         integration=IntegrationConfig(
             default_mode="integrated",

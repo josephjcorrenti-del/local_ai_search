@@ -21,17 +21,6 @@ class SearchConfig:
 
 
 @dataclass(frozen=True)
-class AIConfig:
-    ollama_base_url: str
-    request_timeout_seconds: int
-    small_model: str
-    lightweight_model: str
-    large_model: str
-    chat_model: str
-    summary_model: str
-
-
-@dataclass(frozen=True)
 class IntegrationConfig:
     default_mode: str
     evidence_limit: int
@@ -41,7 +30,6 @@ class IntegrationConfig:
 @dataclass(frozen=True)
 class AppConfig:
     search: SearchConfig
-    ai: AIConfig
     integration: IntegrationConfig
     filesystem: FilesystemConfig
 
@@ -145,15 +133,6 @@ def load_config(path: Path | None = None) -> AppConfig:
                 provider_url=parser.get("search", "provider_url"),
                 default_limit=parser.getint("search", "default_limit"),
                 timeout_seconds=parser.getint("search", "timeout_seconds"),
-            ),
-            ai=AIConfig(
-                ollama_base_url=parser.get("ai", "ollama_base_url"),
-                request_timeout_seconds=parser.getint("ai", "request_timeout_seconds"),
-                small_model=parser.get("ai", "small_model"),
-                lightweight_model=parser.get("ai", "lightweight_model"),
-                large_model=parser.get("ai", "large_model"),
-                chat_model=parser.get("ai", "chat_model"),
-                summary_model=parser.get("ai", "summary_model"),
             ),
             integration=IntegrationConfig(
                 default_mode=parser.get("integration", "default_mode"),
