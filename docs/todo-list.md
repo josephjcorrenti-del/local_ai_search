@@ -202,7 +202,7 @@
 
 #### Answer quality behavior
 
-[ ] make default query mode evidence-aware
+[x] make default query mode evidence-aware
 [ ] support uncertainty/competing-evidence language
 [ ] support inline evidence references like [1]
 [x] render evidence references as clickable source links
@@ -212,8 +212,18 @@
 
 [ ] add deterministic integrated prompt_builder quality tests
 [ ] compare local/search/AI output quality
-[ ] improve follow-up intent/context linking
 [ ] prevent duplicate query submission
+
+#### Conversational context and retrieval
+
+[ ] load the selected session's recent history before interpreting each query
+[ ] use session history to resolve corrections, refinements, and referential follow-ups
+[ ] build a temporary context-resolved retrieval query when a follow-up needs search
+[ ] decide whether retrieval is needed after resolving the follow-up's meaning
+[ ] give the answer model both session context and any retrieved evidence
+[ ] persist only the original user message and final answer in session history
+[ ] avoid attaching short follow-ups to stale or unrelated session context
+[ ] add integrated regression tests for multi-turn conversational queries
 
 ### Phase 2.3.0.1 – Frontend and Client Boundary Refactor
 
@@ -350,7 +360,6 @@
 [ ] make sure ELK still works correctly.
 [ ] create/use chat summary for performance
 [x] verify local_ai uses the current monorepo runtime data directory
-[ ] make default query mode evidence-aware
 [ ] verify local ai search uses default session
 [ ] verify local ai acts like local ai search 
 [ ] improve frontend navigation editing and resource organization

@@ -754,38 +754,50 @@ def test_api_query_resolves_default_mode_without_client_help(monkeypatch):
     from local_ai_search.api import routes
 
     calls = []
+    evidence = {
+        "provider": "local_search",
+        "results": [
+            {
+                "rank": 1,
+                "title": "SQLite",
+                "url": "https://example.com",
+                "snippet": "SQLite is a database.",
+            }
+        ],
+    }
 
-    class Decision:
-        route = "model_only"
-        reason = "general question"
-        needs_retrieval = False
-
-    def fake_decide_intent(
+    def fake_resolve_evidence(
         query,
         *,
-        mode="integrated",
+        decision,
         session_name=None,
+        workspace_name=None,
+        limit=None,
+        max_chars=None,
     ):
         calls.append(
             (
-                "decide_intent",
-                mode,
+                "resolve_evidence",
+                query,
+                decision.route,
                 session_name,
             )
         )
-        return Decision()
+        return evidence
 
-    monkeypatch.setattr(routes, "decide_intent", fake_decide_intent)
-    monkeypatch.setattr(
-        routes,
-        "resolve_evidence",
-        lambda query, **kwargs: {"results": []},
-    )
-    monkeypatch.setattr(
-        routes.prompt_builder,
-        "run_query",
-        lambda query, evidence, session_name=None: "answer",
-    )
+    def fake_run_query(query, loaded_evidence, session_name=None):
+        calls.append(
+            (
+                "run_query",
+                query,
+                loaded_evidence,
+                session_name,
+            )
+        )
+        return "answer"
+
+    monkeypatch.setattr(routes, "resolve_evidence", fake_resolve_evidence)
+    monkeypatch.setattr(routes.prompt_builder, "run_query", fake_run_query)
 
     client = TestClient(create_app())
 
@@ -802,14 +814,30 @@ def test_api_query_resolves_default_mode_without_client_help(monkeypatch):
     assert data["session"] == routes.CONFIG.default_session_name
     assert data["workspace"] is None
     assert data["answer"] == "answer"
-
+    assert data["evidence"] == evidence
+    assert data["intent"] == {
+        "route": "retrieve",
+        "reason": "default integrated mode retrieves evidence",
+    }
+    assert data["retrieval"] == {
+        "status": "used",
+        "reason": "default integrated mode retrieves evidence",
+    }
     assert calls == [
         (
-            "decide_intent",
-            "integrated",
+            "resolve_evidence",
+            "what is sqlite?",
+            "retrieve",
             routes.CONFIG.default_session_name,
-        )
+        ),
+        (
+            "run_query",
+            "what is sqlite?",
+            evidence,
+            routes.CONFIG.default_session_name,
+        ),
     ]
+
 
 def test_api_missing_query_uses_structured_validation_contract():
     client = TestClient(create_app())
