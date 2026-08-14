@@ -203,7 +203,7 @@
 #### Answer quality behavior
 
 [x] make default query mode evidence-aware
-[ ] support uncertainty/competing-evidence language
+[x] support uncertainty/competing-evidence language
 [ ] support inline evidence references like [1]
 [x] render evidence references as clickable source links
 [ ] render deterministic evidence summary after answer

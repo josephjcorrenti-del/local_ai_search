@@ -25,7 +25,12 @@ def test_build_prompt_contains_evidence_aware_instructions():
 
     assert "accurately, concisely, and conversationally" in prompt
     assert "Use it as your primary source of factual information" in prompt
-    assert "If the evidence conflicts, explain the disagreement." in prompt
+    assert "Compare the evidence items for agreement" in prompt
+    assert "describe the competing claims and the disagreement explicitly" in prompt
+    assert "Do not silently choose one conflicting claim." in prompt
+    assert "If one claim is better supported, explain why" in prompt
+    assert "separate what is established, what is uncertain" in prompt
+    assert "the available evidence does not establish this" in prompt
     assert "The application presents provenance separately." in prompt
     assert "Do not mention snippet numbers." in prompt
     assert "Do not attribute common programming constructs to individual sources." in prompt
@@ -49,6 +54,36 @@ def test_build_prompt_contains_evidence():
     assert "[1] SQLite" in prompt
     assert "https://example.com" in prompt
     assert "Embedded database" in prompt
+
+
+def test_build_prompt_preserves_competing_evidence_and_requires_qualified_synthesis():
+    prompt = build_prompt(
+        "How long should records be retained?",
+        {
+            "results": [
+                {
+                    "rank": 1,
+                    "title": "Thirty-day policy",
+                    "url": "https://example.com/thirty-days",
+                    "snippet": "Records should be retained for 30 days.",
+                },
+                {
+                    "rank": 2,
+                    "title": "Ninety-day policy",
+                    "url": "https://example.com/ninety-days",
+                    "snippet": "Records should be retained for 90 days.",
+                },
+            ]
+        },
+    )
+
+    assert "[1] Thirty-day policy" in prompt
+    assert "Records should be retained for 30 days." in prompt
+    assert "[2] Ninety-day policy" in prompt
+    assert "Records should be retained for 90 days." in prompt
+    assert "describe the competing claims and the disagreement explicitly" in prompt
+    assert "Do not silently choose one conflicting claim." in prompt
+    assert "If one claim is better supported, explain why" in prompt
 
 
 def test_run_query_calls_local_ai(monkeypatch):
