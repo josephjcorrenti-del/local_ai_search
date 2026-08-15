@@ -4,11 +4,13 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from local_search.config import DATA_ROOT as SHARED_DATA_ROOT
+
 APP_NAME = "local_search"
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
-DATA_ROOT = REPO_ROOT / "data" / APP_NAME
+DATA_ROOT = SHARED_DATA_ROOT / APP_NAME
 
 LOG_DIR = DATA_ROOT / "logs"
 ARTIFACTS_DIR = DATA_ROOT / "artifacts"

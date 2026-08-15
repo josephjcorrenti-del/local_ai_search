@@ -30,6 +30,23 @@ def _load_search_config() -> configparser.SectionProxy:
 
 _SEARCH_CONFIG = _load_search_config()
 
+def _data_root_get() -> Path:
+    parser = configparser.ConfigParser()
+    parser.read(_config_path())
+
+    if "runtime" not in parser:
+        raise RuntimeError(f"missing [runtime] section in {_config_path()}")
+
+    configured_root = Path(parser["runtime"].get("data_root", "data")).expanduser()
+
+    if configured_root.is_absolute():
+        return configured_root
+
+    return _repo_root() / configured_root
+
+
+DATA_ROOT = _data_root_get()
+
 APP_NAME = _SEARCH_CONFIG.get("app_name", "local_search")
 
 DEFAULT_CHUNK_SIZE = _SEARCH_CONFIG.getint("chunk_size", 1200)

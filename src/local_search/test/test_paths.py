@@ -1,5 +1,4 @@
-from local_search.paths import DATA_ROOT
-from local_search.paths import DB_PATH
+from local_search.paths import APP_NAME, DATA_ROOT, DB_PATH, REPO_ROOT
 
 
 def test_data_root_name() -> None:
@@ -8,3 +7,5 @@ def test_data_root_name() -> None:
 
 def test_db_name() -> None:
     assert DB_PATH.name == "search.db"
+
+    assert DATA_ROOT == REPO_ROOT / "data" / APP_NAME

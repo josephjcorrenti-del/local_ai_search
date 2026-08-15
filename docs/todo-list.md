@@ -204,6 +204,7 @@
 
 [x] make default query mode evidence-aware
 [x] support uncertainty/competing-evidence language
+[x] verify local_ai uses the current monorepo runtime data directory
 [ ] support inline evidence references like [1]
 [x] render evidence references as clickable source links
 [ ] render deterministic evidence summary after answer

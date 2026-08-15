@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
+from local_ai_search.config import runtime_data_root
 
 APP_NAME = "local_ai_search"
 
@@ -23,7 +24,7 @@ def get_repo_root() -> Path:
 
 def get_paths() -> AppPaths:
     repo_root = get_repo_root()
-    data_root = repo_root / "data" / APP_NAME
+    data_root = runtime_data_root(repo_root) / APP_NAME
 
     return AppPaths(
         repo_root=repo_root,

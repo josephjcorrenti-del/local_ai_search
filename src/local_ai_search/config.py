@@ -53,6 +53,22 @@ def default_config_path() -> Path:
     return Path(__file__).resolve().parents[2] / "config.ini"
 
 
+def runtime_data_root(repo_root: Path | None = None) -> Path:
+    parser = configparser.ConfigParser()
+    config_path = default_config_path()
+    parser.read(config_path)
+
+    if "runtime" not in parser:
+        raise RuntimeError(f"missing [runtime] section in {config_path}")
+
+    configured_root = Path(parser["runtime"].get("data_root", "data")).expanduser()
+
+    if configured_root.is_absolute():
+        return configured_root
+
+    return (repo_root or config_path.parent) / configured_root
+
+
 def default_config_text() -> str:
     return "\n".join(
         [

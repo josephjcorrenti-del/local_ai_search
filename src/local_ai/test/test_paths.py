@@ -8,7 +8,7 @@ from local_ai.paths import paths_get
 def test_paths_default_data_root():
     paths = paths_get()
 
-    expected_data_root = Path.home() / "ai" / "data"
+    expected_data_root = paths.repo_root / "data"
     expected_app_data_root = expected_data_root / "local_ai"
 
     assert paths.data_root == expected_data_root

@@ -15,14 +15,13 @@ Design notes:
 - Separates "roles" of models:
   - lightweight_model_name: cheaper / smaller tasks (summarization)
   - large_model_name: primary chat / reasoning model
-- Paths are defined relative to a single ai_root to keep runtime data separate from repo code
+- Runtime paths use the shared data root configured in the monorepo config.ini
 - Defaults favor local, explicit behavior over flexibility
 """
 
 import configparser
 from dataclasses import dataclass
 from pathlib import Path
-import os
 
 
 def _repo_root() -> Path:
@@ -85,8 +84,6 @@ class AppConfig:
     ai_start_script_name: str = "ai_start.sh"
     ai_status_script_name: str = "ai_status.sh"
 
-    ai_root: Path = Path.home() / "ai"
-
     default_session_name: str = _AI_CONFIG.get("default_session_name", "default")
     memory_turn_limit: int = _AI_CONFIG.getint("memory_turn_limit", 8)
 
@@ -99,8 +96,18 @@ class AppConfig:
 
     @property
     def data_root(self) -> Path:
-        """Resolve the active data root from an explicit CLI/env selection."""
-        data_dir = os.environ.get("OWB_DATA_DIR", "data")
-        return self.ai_root / data_dir
+        """Resolve the configured shared runtime data root."""
+        parser = configparser.ConfigParser()
+        parser.read(_config_path())
+
+        if "runtime" not in parser:
+            raise RuntimeError(f"missing [runtime] section in {_config_path()}")
+
+        configured_root = Path(parser["runtime"].get("data_root", "data")).expanduser()
+
+        if configured_root.is_absolute():
+            return configured_root
+
+        return _repo_root() / configured_root
 
 CONFIG = AppConfig()
