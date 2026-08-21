@@ -205,9 +205,19 @@
 [x] make default query mode evidence-aware
 [x] support uncertainty/competing-evidence language
 [x] verify local_ai uses the current monorepo runtime data directory
-[ ] support inline evidence references like [1]
 [x] render evidence references as clickable source links
 [ ] render deterministic evidence summary after answer
+
+#### Inline evidence references
+
+[ ] update the evidence prompt to require exact references such as `[1]` and `[1][3]`
+[ ] add a concise citation example to the prompt
+[ ] validate citations against the supplied evidence ranks
+[ ] detect evidence-backed answers with missing or invalid citations
+[ ] make one bounded citation-repair attempt when validation fails
+[ ] add tests for single, multiple, missing, malformed, and nonexistent references
+[ ] add an integrated regression test proving Qwen produces valid inline references
+[ ] measure citation-repair frequency and added latency
 
 #### Quality validation
 
@@ -371,6 +381,8 @@
 [ ] make it clear where a newly created session or workspace appears
 [ ] replace bulky prompt-based creation flows with an integrated frontend interaction
 [ ] need to be able to stop an ai search 
+[ ] add easy startup and installation for Docker, SearXNG, Ollama, and the web server
+[ ] get Hermes working with config-backed partial GPU offload
 
 ### Session lifecycle and explicit creation
 
@@ -388,3 +400,37 @@
 - [ ] keep workspace references separate from session ownership
 - [ ] define recoverable behavior when session creation succeeds but workspace association fails
 - [ ] add lifecycle tests in `local_ai` and API contract tests in `local_ai_search`
+
+#### Runtime performance and troubleshooting
+
+[ ] define a system-agnostic runtime diagnostics contract
+[ ] report the effective AI-runtime configuration using supported platform mechanisms
+[ ] detect settings that disable or restrict available hardware acceleration
+[ ] detect whether the configured acceleration backend is available and healthy
+[ ] report model placement, context size, loaded-model count, memory use, and accelerator utilization when available
+[ ] report CPU and system-memory utilization when accelerator metrics are unavailable
+[ ] warn when model loading, concurrency, context, or batch settings exceed detected system capacity
+[ ] diagnose model-runner failures and identify the relevant application, runtime, or service logs
+[ ] distinguish retrieval, model load, prompt evaluation, and response generation time
+[ ] add a repeatable representative model benchmark that records accuracy, citation behavior, and timing
+[ ] verify configured models can start using their effective placement, context, batch, and parallelism settings
+[ ] make unsupported diagnostic capabilities explicit rather than treating them as failures
+[ ] isolate platform-specific inspection behind replaceable diagnostic adapters
+[ ] expose diagnostics through CLI first and make the results available to future status and doctor interfaces
+[ ] add deterministic tests using platform-independent fixtures and mocked diagnostic adapters
+
+#### Deterministic context composition
+
+[ ] implement the context-source priority and conflict-resolution decision
+[ ] include active project decisions as relevant model context
+[ ] include session-associated files separately from session message history
+[ ] consider selected workspace files and linked sessions when composing context
+[ ] select relevant local/filesystem and web evidence according to the resolved question
+[ ] preserve the current message and recent ordinary turns verbatim
+[ ] summarize oversized or older terminal output and conversation history
+[ ] retain original session messages and files so omitted details remain retrievable
+[ ] allocate context by measured size or tokens instead of message count alone
+[ ] keep the configured 4,000-character retrieved-evidence budget separate from conversation-history limits
+[ ] reserve context capacity for the current question and generated answer
+[ ] report which sources were included verbatim, summarized, retrieved, or omitted
+[ ] add deterministic tests for priority, budgeting, conflict resolution, and oversized session content

@@ -624,3 +624,38 @@ requested operation over rejecting it.
 
 Validation should reject only operations that are unsafe,
 ambiguous, or cannot be persisted correctly.
+
+## 2026-08-17 - Context priority and authority
+
+Context priority determines what fits in the prompt. Authority determines what wins when sources conflict.
+
+| Source                | Purpose                                        |
+| --------------------- | ---------------------------------------------- |
+| Current message       | Immediate intent and corrections               |
+| Active decisions      | Project rules and constraints                  |
+| Recent session turns  | Conversational continuity                      |
+| Session files         | Files associated with the conversation         |
+| Workspace files       | Broader project context                        |
+| Retrieved local files | Current filesystem and implementation evidence |
+| Web evidence          | Current external information                   |
+| Older session summary | Compressed conversation history                |
+| Old raw output        | Detail retrieved only when relevant            |
+
+The current message is always preserved. A new user correction overrides older conversation and summaries.
+
+Authority depends on the question:
+
+* Active decisions govern project rules.
+* Current code and runtime observations govern implementation state.
+* Session history governs conversational intent.
+* Session files normally take priority over general workspace files.
+* Authoritative web evidence governs changing external facts.
+* Web evidence does not override project decisions.
+
+Priority does not guarantee inclusion. Context must be relevant to the resolved question.
+
+Recent conversation should remain verbatim when practical. Older or oversized content may be summarized, but the original session content and files must remain retrievable.
+
+Retrieved evidence keeps its own configured budget. Session history, session files, workspace files, and web evidence require separate budgets. Context must be measured by size or tokens—not only message count—and must reserve room for the current question and answer.
+
+The policy may become machine-readable when the context composer is implemented. Its storage format is not decided yet.
