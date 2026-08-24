@@ -324,6 +324,55 @@
 [ ] verify frontend behavior is unchanged
 [ ] verify future clients can rely solely on the API
 
+### Phase 2.3.0.2 – Backend Package Ownership Refactor
+
+#### Confirm ownership
+
+[ ] update decisions to state that `local_ai` owns all model-facing AI logic
+[ ] update decisions to state that `local_search` owns retrieval and evidence production
+[ ] update decisions to limit `local_ai_search` to orchestration and the client/API boundary
+
+
+#### Move AI responsibilities to local_ai
+
+[ ] define a structured evidence input accepted by the canonical `local_ai` chat operation
+[ ] move evidence-aware prompt construction from `local_ai_search` to `local_ai`
+[ ] move uncertainty and competing-evidence instructions to `local_ai`
+[ ] move inline-reference generation, validation, and bounded repair to `local_ai`
+[ ] move session-context and workspace-context composition to `local_ai`
+[ ] move conversational follow-up interpretation and temporary query resolution to `local_ai`
+[ ] ensure `local_ai` persists only the original user message and final answer
+[ ] remove obsolete session, workspace, and prompt builders from `local_ai_search`
+
+#### Move retrieval responsibilities to local_search
+
+[ ] make `local_search` return evidence without `local_ai_search` inspecting artifact directories
+[ ] move web-artifact discovery and query-slug handling to `local_search`
+[ ] move filesystem traversal, inclusion policy, and filesystem evidence construction to `local_search`
+[ ] move filesystem retrieval configuration to the search-owned config section
+[ ] keep evidence bounding and shaping owned by `local_search`
+
+#### Reduce local_ai_search to orchestration
+
+[ ] keep mode selection and package-call sequencing in `local_ai_search`
+[ ] keep evidence contract validation at the integration boundary
+[ ] keep evidence accounting and API response shaping in `local_ai_search`
+[ ] replace direct `local_ai` and `local_search` internal imports with adapter operations
+[ ] remove duplicate or obsolete intent and evidence paths
+[ ] ensure selected session, workspace, filesystem, and web inputs reach the correct owner
+[ ] preserve the existing public CLI, API, and frontend contracts
+
+#### Validate the boundary
+
+[ ] add tests proving `local_ai_search` delegates AI behavior to `local_ai`
+[ ] add tests proving `local_ai_search` delegates retrieval behavior to `local_search`
+[ ] add tests proving `local_ai_search` does not read package-owned runtime storage directly
+[ ] add multi-turn regression tests for corrections and referential follow-ups
+[ ] add integrated tests for evidence, uncertainty, and inline references
+[ ] verify integrated, `ai_only`, and `web_only` behavior through CLI and API
+[ ] verify session, workspace, filesystem, and frontend behavior remain stable
+[ ] run all Python tests and the frontend production build
+
 ### Phase 2.3.1 – Results quality in GUI
 
 [x] expose session selection/input in GUI
