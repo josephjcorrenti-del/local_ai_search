@@ -30,10 +30,41 @@ def test_build_prompt_contains_evidence_aware_instructions():
     assert "Do not silently choose one conflicting claim." in prompt
     assert "If one claim is better supported, explain why" in prompt
     assert "separate what is established, what is uncertain" in prompt
-    assert "the available evidence does not establish this" in prompt
-    assert "The application presents provenance separately." in prompt
-    assert "Do not mention snippet numbers." in prompt
+    assert "Cite factual claims supported by the selected evidence." in prompt
+    assert "If you use selected evidence, include at least one valid reference." in prompt
     assert "Do not attribute common programming constructs to individual sources." in prompt
+
+
+def test_build_prompt_contains_inline_reference_contract():
+    prompt = build_prompt(
+        "Which databases are embedded?",
+        {
+            "results": [
+                {
+                    "rank": 1,
+                    "title": "SQLite",
+                    "url": "https://example.com/sqlite",
+                    "snippet": "SQLite is an embedded database.",
+                },
+                {
+                    "rank": 3,
+                    "title": "DuckDB",
+                    "url": "https://example.com/duckdb",
+                    "snippet": "DuckDB is designed for analytical workloads.",
+                },
+            ]
+        },
+    )
+
+    assert "such as [1]." in prompt
+    assert "such as [1][3]." in prompt
+    assert "Reference only ranks that appear in the selected evidence." in prompt
+    assert "Do not cite unsupported claims or invent references." in prompt
+    assert (
+        "Example: SQLite is an embedded database [1]. "
+        "DuckDB is designed for analytical workloads [2][3]."
+        in prompt
+    )
 
 
 def test_build_prompt_contains_evidence():
@@ -96,12 +127,14 @@ def test_run_query_calls_local_ai(monkeypatch):
         *,
         session_name=None,
         orchestrator_context=None,
+        citation_ranks=(),
     ):
         calls.append(
             (
                 user_prompt,
                 session_name,
                 orchestrator_context,
+                citation_ranks,
             )
         )
         return "answer text"
@@ -129,10 +162,16 @@ def test_run_query_calls_local_ai(monkeypatch):
     assert answer == "answer text"
     assert len(calls) == 1
 
-    user_prompt, session_name, orchestrator_context = calls[0]
+    (
+        user_prompt,
+        session_name,
+        orchestrator_context,
+        citation_ranks,
+    ) = calls[0]
 
     assert user_prompt == "What is SQLite?"
     assert session_name is None
+    assert citation_ranks == (1,)
     assert "Question: What is SQLite?" in orchestrator_context
     assert "SQLite is an embedded database." in orchestrator_context
 

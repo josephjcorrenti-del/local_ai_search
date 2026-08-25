@@ -498,6 +498,16 @@ button {
   background: rgba(13, 24, 42, 0.72);
 }
 
+.evidence-reference {
+  color: #62adff;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.evidence-reference:hover {
+  text-decoration: underline;
+}
+
 .workspace-overview h1 {
   margin-top: 0;
 }

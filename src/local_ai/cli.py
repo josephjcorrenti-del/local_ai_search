@@ -240,10 +240,17 @@ def chat_run(
     session_name: str | None = None,
     model_name: str | None = None,
     stream: bool = False,
+    citation_ranks: tuple[int, ...] = (),
     *,
     orchestrator_context: str | None = None,
 ) -> None:
     """Run chat through the reusable chat operation and print its output."""
+    citation_options = (
+        {"citation_ranks": citation_ranks}
+        if citation_ranks
+        else {}
+    )
+
     if stream:
         def print_stream_chunk(chunk: str) -> None:
             print(chunk, end="", flush=True)
@@ -255,6 +262,7 @@ def chat_run(
             stream=True,
             stream_chunk_handler=print_stream_chunk,
             orchestrator_context=orchestrator_context,
+            **citation_options,
         )
         print()
         return
@@ -264,6 +272,7 @@ def chat_run(
         session_name=session_name,
         model_name=model_name,
         orchestrator_context=orchestrator_context,
+        **citation_options,
     )
     print(answer)
 
@@ -294,6 +303,7 @@ def chat_command_run(args: argparse.Namespace) -> None:
         args.text,
         args.session,
         orchestrator_context=args.orchestrator_context,
+        citation_ranks=args.citation_ranks,
     )
 
 
@@ -939,6 +949,17 @@ def parser_build() -> argparse.ArgumentParser:
         "--orchestrator-context",
         default=None,
         help="Additional orchestrator instructions or evidence context",
+    )
+
+    p_chat.add_argument(
+        "--citation-ranks",
+        default=(),
+        type=lambda value: tuple(
+            int(item.strip())
+            for item in value.split(",")
+            if item.strip()
+        ),
+        help="Comma-separated evidence ranks allowed in the answer",
     )
 
     p_clear = subparsers.add_parser("clear", help="Clear session memory")

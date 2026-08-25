@@ -2,6 +2,10 @@ from __future__ import annotations
 
 from typing import Callable
 
+from local_ai.citations import (
+    citation_repair_prompt_get,
+    citation_validation_get,
+)
 from local_ai.config import CONFIG
 from local_ai.memory import session_append, session_turns_get
 from local_ai.runtime import (
@@ -19,8 +23,12 @@ def chat_answer_get(
     stream_chunk_handler: Callable[[str], None] | None = None,
     *,
     orchestrator_context: str | None = None,
+    citation_ranks: tuple[int, ...] = (),
 ) -> str:
     """Run a session-aware chat request and return the answer."""
+    if stream and citation_ranks:
+        raise ValueError("citation validation does not support streaming")
+
     ollama_ensure_running()
 
     model = model_name or CONFIG.chat_model_name
@@ -66,6 +74,34 @@ def chat_answer_get(
     else:
         result = ollama_chat(payload)
         answer = result["message"]["content"]
+
+        validation = citation_validation_get(
+            answer,
+            citation_ranks,
+            citation_required=bool(citation_ranks),
+        )
+
+        if not validation.valid:
+            repair_result = ollama_chat(
+                {
+                    "model": model,
+                    "stream": False,
+                    "messages": [
+                        *messages,
+                        {
+                            "role": "assistant",
+                            "content": answer,
+                        },
+                        {
+                            "role": "user",
+                            "content": citation_repair_prompt_get(
+                                citation_ranks
+                            ),
+                        },
+                    ],
+                }
+            )
+            answer = repair_result["message"]["content"]
 
     session_append("user", user_prompt, session_name)
     session_append("assistant", answer, session_name)

@@ -48,6 +48,7 @@ def chat(
     *,
     session_name: str | None = None,
     orchestrator_context: str | None = None,
+    citation_ranks: tuple[int, ...] = (),
 ) -> str:
     command = ["local-ai", "chat", user_prompt]
 
@@ -59,6 +60,14 @@ def chat(
             [
                 "--orchestrator-context",
                 orchestrator_context,
+            ]
+        )
+
+    if citation_ranks:
+        command.extend(
+            [
+                "--citation-ranks",
+                ",".join(str(rank) for rank in citation_ranks),
             ]
         )
 

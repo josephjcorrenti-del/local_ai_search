@@ -35,12 +35,18 @@ def build_prompt(
         "- Do not present uncertain information as fact.",
         "- Prefer acknowledging uncertainty over guessing.",
         "",
-        "Attribution:",
+        "Inline evidence references:",
+        "- Cite factual claims supported by the selected evidence.",
+        "- Use the evidence rank in square brackets, such as [1].",
+        "- Cite multiple sources separately, such as [1][3].",
+        "- Place each reference immediately after the claim it supports.",
+        "- If you use selected evidence, include at least one valid reference.",
+        "- Reference only ranks that appear in the selected evidence.",
+        "- Do not cite unsupported claims or invent references.",
+        "- Example: SQLite is an embedded database [1]. DuckDB is designed for analytical workloads [2][3].",
         "- Do not describe how many sources you used.",
-        "- Do not mention snippet numbers.",
         "- Do not describe the retrieval process.",
         "- Do not explain which evidence items you received.",
-        "- The application presents provenance separately.",
         "",
         "Conversation:",
         "- Answer the user's question first.",
@@ -82,10 +88,21 @@ def run_query(
         session_name=session_name,
     )
 
+    citation_ranks = tuple(
+        int(result["rank"])
+        for result in evidence.get("results", [])
+    )
+    citation_options = (
+        {"citation_ranks": citation_ranks}
+        if citation_ranks
+        else {}
+    )
+
     return local_ai.chat(
         query,
         session_name=session_name,
         orchestrator_context=orchestrator_context,
+        **citation_options,
     )
 
 

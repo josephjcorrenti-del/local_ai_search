@@ -110,6 +110,7 @@ def test_chat_passes_session_and_orchestrator_context(
         "question text",
         session_name="api-test-session",
         orchestrator_context="evidence context",
+        citation_ranks=(1, 3),
     )
 
     assert answer == "answer text"
@@ -122,5 +123,7 @@ def test_chat_passes_session_and_orchestrator_context(
             "api-test-session",
             "--orchestrator-context",
             "evidence context",
+            "--citation-ranks",
+            "1,3",
         ]
     ]

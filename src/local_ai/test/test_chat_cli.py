@@ -489,3 +489,73 @@ def test_chat_run_passes_orchestrator_context(
             "evidence context",
         )
     ]
+
+
+def test_chat_answer_get_repairs_citations_before_persisting(
+    monkeypatch,
+):
+    payloads = []
+    persisted = []
+    answers = iter(
+        [
+            "SQLite is an embedded database.",
+            "SQLite is an embedded database [1].",
+        ]
+    )
+
+    monkeypatch.setattr(
+        chat,
+        "ollama_ensure_running",
+        lambda: None,
+    )
+    monkeypatch.setattr(
+        chat,
+        "session_turns_get",
+        lambda session_name: [],
+    )
+
+    def fake_ollama_chat(payload):
+        payloads.append(payload)
+        return {
+            "message": {
+                "content": next(answers),
+            }
+        }
+
+    monkeypatch.setattr(
+        chat,
+        "ollama_chat",
+        fake_ollama_chat,
+    )
+    monkeypatch.setattr(
+        chat,
+        "session_append",
+        lambda role, content, session_name: persisted.append(
+            (role, content, session_name)
+        ),
+    )
+
+    answer = chat.chat_answer_get(
+        "What is SQLite?",
+        session_name="citation-test",
+        orchestrator_context="Selected evidence: [1] SQLite",
+        citation_ranks=(1,),
+    )
+
+    assert answer == "SQLite is an embedded database [1]."
+    assert len(payloads) == 2
+    assert payloads[1]["messages"][-2] == {
+        "role": "assistant",
+        "content": "SQLite is an embedded database.",
+    }
+    assert "Use only these references: [1]." in (
+        payloads[1]["messages"][-1]["content"]
+    )
+    assert persisted == [
+        ("user", "What is SQLite?", "citation-test"),
+        (
+            "assistant",
+            "SQLite is an embedded database [1].",
+            "citation-test",
+        ),
+    ]

@@ -5,7 +5,10 @@ import {
   renderEvidenceTitle,
   renderEvidenceUrl,
 } from "./render-evidence";
-import { escapeHtml, formatText } from "./render-utils";
+import {
+  escapeHtml,
+  formatTextWithEvidenceReferences,
+} from "./render-utils";
 import type { QueryResponse } from "./types";
 
 export type ChatTurn = {
@@ -43,7 +46,12 @@ function renderTurn(turn: ChatTurn): string {
         <div class="avatar bot">◎</div>
         <div class="message-body">
           <div class="message-label assistant-label">Local AI Search</div>
-          <div class="answer">${formatText(turn.response.answer || "No answer returned.")}</div>
+          <div class="answer">${
+            formatTextWithEvidenceReferences(
+              turn.response.answer || "No answer returned.",
+              sources,
+            )
+          }</div>
           ${
             sources.length > 0
               ? `
