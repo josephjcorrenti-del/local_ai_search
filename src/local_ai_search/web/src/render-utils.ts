@@ -13,10 +13,20 @@ export function escapeAttr(value: string): string {
   return escapeHtml(value);
 }
 
+function formatBold(value: string): string {
+  return value.replace(
+    /\*\*([^*\n]+)\*\*/g,
+    "<strong>$1</strong>",
+  );
+}
+
 export function formatText(value: string): string {
   return escapeHtml(value)
     .split("\n\n")
-    .map((paragraph) => `<p>${paragraph.replaceAll("\n", "<br>")}</p>`)
+    .map(
+      (paragraph) =>
+        `<p>${formatBold(paragraph).replaceAll("\n", "<br>")}</p>`,
+    )
     .join("");
 }
 
@@ -28,15 +38,7 @@ export function formatTextWithEvidenceReferences(
     evidence.map((source) => [source.rank, source]),
   );
 
-  const formattedText = escapeHtml(value)
-    .split("\n\n")
-    .map(
-      (paragraph) =>
-        `<p>${paragraph.replaceAll("\n", "<br>")}</p>`,
-    )
-    .join("");
-
-  return formattedText.replace(
+  return formatText(value).replace(
     /\[(\d+)\]/g,
     (reference, rankText: string) => {
       const rank = Number(rankText);

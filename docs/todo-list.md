@@ -210,7 +210,8 @@
 
 #### Inline evidence references
 
-[ ] update the evidence prompt to require exact references such as `[1]` and `[1][3]`
+[x] update the evidence prompt to require exact references such as `[1]` and `[1][3]`
+[x] fixed bug where bold was not displaying correctly
 [ ] add a concise citation example to the prompt
 [ ] validate citations against the supplied evidence ranks
 [ ] detect evidence-backed answers with missing or invalid citations
