@@ -212,13 +212,11 @@
 
 [x] update the evidence prompt to require exact references such as `[1]` and `[1][3]`
 [x] fixed bug where bold was not displaying correctly
-[ ] add a concise citation example to the prompt
-[ ] validate citations against the supplied evidence ranks
-[ ] detect evidence-backed answers with missing or invalid citations
-[ ] make one bounded citation-repair attempt when validation fails
-[ ] add tests for single, multiple, missing, malformed, and nonexistent references
-[ ] add an integrated regression test proving Qwen produces valid inline references
-[ ] measure citation-repair frequency and added latency
+[x] add a concise citation example to the prompt
+[x] validate citations against the supplied evidence ranks
+[x] detect evidence-backed answers with missing or invalid citations
+[x] make one bounded citation-repair attempt when validation fails
+[x] add tests for single, multiple, missing, malformed, and nonexistent references
 
 #### Quality validation
 
@@ -394,6 +392,10 @@
 [ ] ollama serve output
 [ ] web gui serve output
 [ ] toggle on and off in settings
+
+#### 2.4.1 Inline evidence references
+[ ] add an integrated regression test proving Qwen produces valid inline references
+[ ] measure citation-repair frequency and added latency
 
 ### Phase 2.5 Easy start update
 [ ] start tools
