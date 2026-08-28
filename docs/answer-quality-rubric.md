@@ -85,19 +85,23 @@ Bad:
 
 ### 5. Provenance
 
-The application owns provenance.
+The model places inline evidence references. The application validates those
+references and owns their presentation.
 
 Good:
 
-- evidence counts are shown by the UI/API
-- sources are visible and inspectable
-- raw/debug response remains available
+- evidence-backed claims use exact references such as `[1]` or `[1][3]`
+- references use only ranks supplied with the selected evidence
+- the application validates references before returning the answer
+- the frontend links valid references to their corresponding sources
+- evidence remains visible and inspectable
 
 Bad:
 
-- model invents vague provenance
-- model claims it used sources without clear mapping
-- provenance is hidden unless raw JSON is opened
+- references are missing from evidence-backed claims
+- references identify nonexistent evidence ranks
+- the model invents vague or unmapped provenance
+- sources are hidden unless raw JSON is opened
 
 ### 6. Competing evidence and uncertainty
 
@@ -131,6 +135,18 @@ Bad:
 - sends excessive evidence to the model
 - makes simple tasks feel slow
 
+## Scoring
+
+Score each applicable category using:
+
+- `2` — meets the target
+- `1` — partially meets the target
+- `0` — fails the target
+- `N/A` — not applicable to this mode or scenario
+
+Record both the score and a short observation. Compare percentages using only
+applicable categories rather than treating `N/A` as zero.
+
 ## Current quality targets
 
 ### Simple coding request
@@ -138,4 +154,126 @@ Bad:
 Example:
 
 ```text
-make a simple python program that says hello world
+Make a simple Python program that says hello world.
+```
+
+Expected:
+
+- `ai_only` returns runnable Python directly.
+- `web_only` returns relevant results if retrieval is requested.
+- `integrated` returns runnable Python without allowing incidental evidence to
+  distort common syntax.
+- The answer does not cite ordinary language syntax unless a factual claim
+  depends on supplied evidence.
+
+### Stable factual question
+
+Example:
+
+```text
+What is SQLite?
+```
+
+Expected:
+
+- The answer defines SQLite directly and accurately.
+- Integrated output uses relevant evidence.
+- Evidence-backed factual claims contain valid inline references.
+- The answer does not describe the retrieval process.
+
+### Freshness-sensitive question
+
+Example:
+
+```text
+What is the latest stable Python release?
+```
+
+Expected:
+
+- `ai_only` may acknowledge that its knowledge could be outdated.
+- `web_only` returns current, relevant results.
+- `integrated` uses current evidence and does not substitute stale model
+  knowledge for supplied facts.
+- Dates and version numbers are qualified when evidence is incomplete.
+
+### Weak or insufficient evidence
+
+Use a controlled evidence package that does not establish the requested fact.
+
+Expected:
+
+- The answer does not treat unrelated evidence as support.
+- Missing information is identified clearly.
+- General model knowledge is distinguished from evidence-backed information.
+- The answer prefers uncertainty over invention.
+
+### Competing evidence
+
+Use a controlled evidence package containing two incompatible claims.
+
+Expected:
+
+- Both claims remain visible to the answer model.
+- The answer states that the sources disagree.
+- The answer does not silently select one claim.
+- Any conclusion is appropriately qualified.
+- References identify the evidence supporting each competing claim.
+
+### Conversational follow-up
+
+Example session:
+
+```text
+User: I prefer SQLite for small local applications.
+User: What database did I just tell you I prefer?
+```
+
+Expected:
+
+- The second message is resolved from session context.
+- Unnecessary web retrieval is skipped.
+- The response identifies SQLite directly.
+- The original user message and final answer are persisted.
+
+### Standalone topic change
+
+Example session:
+
+```text
+User: What IDEs are good for Python and Go?
+User: What LLMs are used for art?
+```
+
+Expected:
+
+- The second message is treated as a standalone topic.
+- Retrieval concerns art or image-generation models.
+- Unrelated Python, Go, and IDE context is excluded from the answer context.
+- The answer does not discuss Python or Go unless the user connects the topics.
+- Both turns remain persisted in the same session.
+
+## Comparison record
+
+For every scenario, record:
+
+| Field | Value |
+| --- | --- |
+| Date and time | |
+| Mode or command | |
+| Model | |
+| Query | |
+| Session | |
+| Evidence provider | |
+| Evidence relevance | |
+| Directness | |
+| Conversational quality | |
+| Accuracy | |
+| Evidence use | |
+| Provenance | |
+| Competing evidence and uncertainty | |
+| Elapsed time | |
+| Notes | |
+
+Keep live-model comparison results out of deterministic pytest. Runtime output
+may vary by model, available evidence, index contents, and execution environment.
