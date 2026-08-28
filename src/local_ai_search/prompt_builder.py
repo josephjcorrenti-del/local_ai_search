@@ -59,8 +59,6 @@ def build_prompt(
         "- Include only the explanation necessary to understand it.",
         "- Do not attribute common programming constructs to individual sources.",
         "",
-        f"Question: {query}",
-        "",
         "Selected evidence:",
         "",
     ]

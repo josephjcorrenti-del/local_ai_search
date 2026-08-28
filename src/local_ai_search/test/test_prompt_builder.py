@@ -8,13 +8,16 @@ def test_build_prompt_exists():
         pass
 
 
-def test_build_prompt_contains_query():
+def test_build_prompt_contains_one_authoritative_current_question():
+    query = "What is SQLite?"
+
     prompt = build_prompt(
-        "What is SQLite?",
+        query,
         {"results": []},
     )
 
-    assert "Question: What is SQLite?" in prompt
+    assert prompt.count(query) == 1
+    assert prompt.endswith(f"Current question: {query}")
 
 
 def test_build_prompt_contains_evidence_aware_instructions():
@@ -172,8 +175,33 @@ def test_run_query_calls_local_ai(monkeypatch):
     assert user_prompt == "What is SQLite?"
     assert session_name is None
     assert citation_ranks == (1,)
-    assert "Question: What is SQLite?" in orchestrator_context
+    assert orchestrator_context.endswith(
+        "Current question: What is SQLite?"
+    )
     assert "SQLite is an embedded database." in orchestrator_context
+
+
+def test_build_prompt_places_selected_evidence_before_current_question():
+    query = "Which database is embedded?"
+    snippet = "SQLite is an embedded database."
+
+    prompt = build_prompt(
+        query,
+        {
+            "results": [
+                {
+                    "rank": 1,
+                    "title": "SQLite",
+                    "url": "https://example.com/sqlite",
+                    "snippet": snippet,
+                }
+            ]
+        },
+    )
+
+    assert prompt.index(snippet) < prompt.index(
+        f"Current question: {query}"
+    )
 
 
 def test_run_query_uses_build_prompt(monkeypatch):

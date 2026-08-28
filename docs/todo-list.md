@@ -220,9 +220,14 @@
 
 #### Quality validation
 
-[ ] add deterministic integrated prompt_builder quality tests
+[x] add deterministic integrated prompt_builder quality tests
 [ ] compare local/search/AI output quality
 [ ] prevent duplicate query submission
+[ ] detect standalone topic changes and exclude unrelated session context
+[ ] add an integrated regression test proving Python/Go context does not contaminate a new art question
+[ ] separate session persistence from session-context inclusion
+[ ] add regression coverage proving excluded session context does not prevent the current turn from being persisted
+[ ] define precedence between selected workspace/filesystem context and automatic retrieval
 
 #### Conversational context and retrieval
 
