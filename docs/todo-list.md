@@ -200,6 +200,29 @@
 [ ] verify the all results quality results are available in FE
 [ ] workspace first screen needs to be able to access files and sessions
 
+#### Search independence
+
+[x] guarantee deterministic pytest does not call live web providers
+[ ] search fresh cached evidence before external retrieval
+[ ] reuse relevant cached evidence across differently worded queries
+[ ] refresh relevant known source URLs before general web search
+[ ] build a context-resolved external retrieval query when needed
+[ ] distinguish results, genuine zero results, degraded provider, and unavailable provider
+[ ] cache exact-query successes, zero results, and provider failures
+[ ] add provider cooldown and circuit-breaker behavior
+[ ] use SearXNG only when healthy
+[ ] support an optional authenticated fallback provider
+[ ] cache successful fallback results through the existing artifact system
+[ ] fail safely when every provider is unavailable
+
+[ ] support preferred and blocked website domains
+[ ] exclude blocked domains from cached and newly retrieved evidence
+[ ] record explicit source visits locally
+[ ] apply preferred-domain boosts only to already-relevant results
+[ ] apply a smaller capped previous-visit boost only to already-relevant results
+[ ] keep topical relevance, freshness, and authority above stored preferences
+[ ] expose domain and visit-ranking policy through config before adding frontend controls
+
 #### Answer quality behavior
 
 [x] make default query mode evidence-aware
@@ -228,6 +251,9 @@
 [ ] separate session persistence from session-context inclusion
 [ ] add regression coverage proving excluded session context does not prevent the current turn from being persisted
 [ ] define precedence between selected workspace/filesystem context and automatic retrieval
+[ ] evaluate citation-to-claim alignment and uncited evidence-backed claims
+[ ] fail safely when required freshness retrieval returns no usable evidence
+[ ] distinguish genuine zero-result searches from upstream web-provider failure
 
 #### Conversational context and retrieval
 

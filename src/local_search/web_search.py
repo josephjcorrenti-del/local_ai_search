@@ -93,8 +93,17 @@ def provider_url_validate(base_url: str) -> str:
     return candidate.rstrip("/")
 
 
+class WebSearchDisabledError(RuntimeError):
+    """Raised when external web search is disabled by runtime policy."""
+
+
 def web_search(query: str) -> dict:
     """Search SearXNG, save structured results, and return them."""
+    if os.environ.get("LOCAL_SEARCH_DISABLE_NETWORK") == "1":
+        raise WebSearchDisabledError(
+            "external web search is disabled for this process"
+        )
+
     started = time.perf_counter()
 
     WEB_ARTIFACTS_DIR.mkdir(parents=True, exist_ok=True)

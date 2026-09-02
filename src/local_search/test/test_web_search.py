@@ -1,6 +1,10 @@
 import pytest
 
-from local_search.web_search import provider_url_validate
+from local_search.web_search import (
+    WebSearchDisabledError,
+    provider_url_validate,
+    web_search,
+)
 
 
 def test_provider_url_validate_accepts_http() -> None:
@@ -30,3 +34,15 @@ def test_provider_url_validate_accepts_https_and_removes_trailing_slash() -> Non
 def test_provider_url_validate_rejects_invalid_urls(base_url: str) -> None:
     with pytest.raises(ValueError):
         provider_url_validate(base_url)
+
+
+def test_web_search_rejects_network_when_disabled(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("LOCAL_SEARCH_DISABLE_NETWORK", "1")
+
+    with pytest.raises(
+        WebSearchDisabledError,
+        match="external web search is disabled",
+    ):
+        web_search("this must not reach SearXNG")
