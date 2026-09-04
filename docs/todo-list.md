@@ -210,7 +210,6 @@
 [ ] distinguish results, genuine zero results, degraded provider, and unavailable provider
 [ ] cache exact-query successes, zero results, and provider failures
 [ ] add provider cooldown and circuit-breaker behavior
-[ ] use SearXNG only when healthy
 [ ] support an optional authenticated fallback provider
 [ ] cache successful fallback results through the existing artifact system
 [ ] fail safely when every provider is unavailable
@@ -222,6 +221,18 @@
 [ ] apply a smaller capped previous-visit boost only to already-relevant results
 [ ] keep topical relevance, freshness, and authority above stored preferences
 [ ] expose domain and visit-ranking policy through config before adding frontend controls
+
+[ ] keep candidate discovery independent from preferred domains and visit history
+[ ] use preferred domains and previous visits only as bounded ranking signals
+[ ] rank relevance, freshness, and source quality above user preference
+[ ] diversify evidence across domains and source types when candidates permit
+[ ] expose discovery coverage and warn when results come only from cached or familiar sources
+
+[ ] use sitemaps and feeds to expand independently discovered sources, not to define the discovery universe
+
+[x] remove SearXNG from the application retrieval path
+[x] remove SearXNG configuration, documentation, and health assumptions
+[x] preserve the web-provider boundary for optional future providers
 
 #### Answer quality behavior
 
@@ -446,7 +457,6 @@
 ## TBP / Later
 
 [ ] decide --shell delegation
-[ ] why is local_search not searxng in config
 [x] clean up tests
 [ ] logs timestamp a day ahead?
 [ ] decide whether local_ai, local_search, and local_ai_search should expose package APIs for GUI/API use
@@ -464,7 +474,7 @@
 [ ] make it clear where a newly created session or workspace appears
 [ ] replace bulky prompt-based creation flows with an integrated frontend interaction
 [ ] need to be able to stop an ai search 
-[ ] add easy startup and installation for Docker, SearXNG, Ollama, and the web server
+[ ] add easy startup and installation for Ollama, and the web server
 [ ] get Hermes working with config-backed partial GPU offload
 
 ### Session lifecycle and explicit creation

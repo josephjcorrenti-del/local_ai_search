@@ -92,3 +92,21 @@ def test_search_ignores_common_stop_words(tmp_path: Path) -> None:
     assert len(results) >= 1
     assert results[0]["source_type"] == "file"
     assert results[0]["index_path"] == str(sample.resolve())
+
+
+def test_search_command_reports_external_discovery_unavailable(
+    capsys,
+) -> None:
+    from local_search.cli import search_command
+
+    assert search_command(
+        "query with no cached evidence",
+        limit=10,
+        json_output=False,
+    ) == 0
+
+    output = capsys.readouterr().out
+
+    assert "no cached results" in output
+    assert "external discovery is not configured" in output
+    assert "searching web" not in output

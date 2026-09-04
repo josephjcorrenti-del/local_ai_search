@@ -53,10 +53,3 @@ DEFAULT_CHUNK_SIZE = _SEARCH_CONFIG.getint("chunk_size", 1200)
 DEFAULT_CHUNK_OVERLAP = _SEARCH_CONFIG.getint("chunk_overlap", 200)
 
 DEFAULT_SEARCH_LIMIT = _SEARCH_CONFIG.getint("default_limit", 10)
-
-DEFAULT_SEARXNG_BASE_URL = _SEARCH_CONFIG.get(
-    "provider_url",
-    "http://localhost:8080",
-)
-DEFAULT_WEB_SEARCH_PROVIDER = _SEARCH_CONFIG.get("web_provider", "searxng")
-WEB_SEARCH_TIMEOUT_SECONDS = _SEARCH_CONFIG.getint("timeout_seconds", 20)

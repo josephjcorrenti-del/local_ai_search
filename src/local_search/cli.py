@@ -36,7 +36,6 @@ from local_search.storage import (
     artifact_index_purge,
     purge_artifacts_command,
 )
-from local_search.web_search import web_search
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -316,37 +315,10 @@ def search_command(
     print()
 
     if not results:
-        info_print("no local results")
+        info_print("no cached results")
 
-        if local_only:
-            return 0
-
-        info_print("searching web")
-        print()
-
-        web_result = web_search(query)
-
-        if not web_result["results"]:
-            info_print("no web results")
-            return 0
-
-        for index, result in enumerate(web_result["results"], start=1):
-            print(f"{index}. {result['title']}")
-            print(f"   url: {result['url']}")
-            print(f"   snippet: {result['snippet']}")
-            print()
-
-        pass_print(f"saved web artifact: {web_result['artifact_path']}")
-
-        index_result = web_artifact_index(Path(web_result["artifact_path"]))
-
-        if index_result["status"] == "indexed":
-            pass_print(f"indexed web artifact: {index_result['document_id']}")
-            info_print(f"chunks: {index_result['chunk_count']}")
-        elif index_result["status"] == "unchanged":
-            info_print("web artifact already indexed")
-        else:
-            fail_print(f"web artifact auto-index failed: {index_result['status']}")
+        if not local_only:
+            info_print("external discovery is not configured")
 
         return 0
 

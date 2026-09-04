@@ -23,10 +23,7 @@ def write_config(path: Path, *, provider: str = "local_search") -> None:
 [search]
 app_name = local_search
 provider = {provider}
-web_provider = searxng
-provider_url = http://localhost:8080
 default_limit = 10
-timeout_seconds = 20
 chunk_size = 1200
 chunk_overlap = 200
 
@@ -106,9 +103,7 @@ def test_reject_unsupported_provider():
     config = AppConfig(
         search=SearchConfig(
             provider="surprise_engine",
-            provider_url="http://localhost:8080",
             default_limit=10,
-            timeout_seconds=20,
         ),
         integration=IntegrationConfig(
             default_mode="integrated",

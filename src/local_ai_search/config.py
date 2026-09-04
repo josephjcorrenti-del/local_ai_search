@@ -15,9 +15,7 @@ class ConfigError(ValueError):
 @dataclass(frozen=True)
 class SearchConfig:
     provider: str
-    provider_url: str
     default_limit: int
-    timeout_seconds: int
 
 
 @dataclass(frozen=True)
@@ -75,15 +73,12 @@ def default_config_text() -> str:
             "[search]",
             "app_name = local_search",
             "provider = local_search",
-            "web_provider = searxng",
             "",
             "# Supported integration providers:",
             "# - local_search",
             "# - duckduckgo",
             "",
-            "provider_url = http://localhost:8080",
             "default_limit = 10",
-            "timeout_seconds = 20",
             "chunk_size = 1200",
             "chunk_overlap = 200",
             "",
@@ -146,9 +141,7 @@ def load_config(path: Path | None = None) -> AppConfig:
         config = AppConfig(
             search=SearchConfig(
                 provider=parser.get("search", "provider"),
-                provider_url=parser.get("search", "provider_url"),
                 default_limit=parser.getint("search", "default_limit"),
-                timeout_seconds=parser.getint("search", "timeout_seconds"),
             ),
             integration=IntegrationConfig(
                 default_mode=parser.get("integration", "default_mode"),
