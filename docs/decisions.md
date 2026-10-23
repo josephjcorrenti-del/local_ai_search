@@ -173,6 +173,7 @@ local-ai-search "how many legs do a cat have?" --web-only
 local-ai-search "how many legs do a cat have?" --ai-only
 
 ## 2026-06-08 - Config ownership
+ 2026-10-23 - updated for SearXNG removal 
 
 Configuration should have one user-facing config file with separate ownership sections.
 
@@ -182,7 +183,6 @@ Target shape:
 [search]
 provider = local_search
 fallback_provider = duckduckgo
-provider_url = http://localhost:8080
 
 [ai]
 chat_model = qwen2.5-coder:3b
@@ -193,6 +193,7 @@ ollama_base_url = http://127.0.0.1:11434
 default_mode = integrated
 evidence_limit = 5
 evidence_max_chars = 4000
+evidence_cache_max_age_seconds = 86400
 ```
 
 Decision:

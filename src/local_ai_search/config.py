@@ -23,6 +23,7 @@ class IntegrationConfig:
     default_mode: str
     evidence_limit: int
     evidence_max_chars: int
+    evidence_cache_max_age_seconds: int
 
 
 @dataclass(frozen=True)
@@ -97,6 +98,7 @@ def default_config_text() -> str:
             "default_mode = integrated",
             "evidence_limit = 5",
             "evidence_max_chars = 4000",
+            "evidence_cache_max_age_seconds = 86400",
             "[filesystem]",
             "enabled = true",
             "max_files = 100",
@@ -147,6 +149,10 @@ def load_config(path: Path | None = None) -> AppConfig:
                 default_mode=parser.get("integration", "default_mode"),
                 evidence_limit=parser.getint("integration", "evidence_limit"),
                 evidence_max_chars=parser.getint("integration", "evidence_max_chars"),
+                evidence_cache_max_age_seconds=parser.getint(
+                    "integration",
+                    "evidence_cache_max_age_seconds",
+                ),
             ),
             filesystem=FilesystemConfig(
                 enabled=parser.getboolean("filesystem", "enabled"),
@@ -188,6 +194,11 @@ def validate_config(config: AppConfig) -> AppConfig:
             f"(supported: {supported})"
         )
 
+    if config.integration.evidence_cache_max_age_seconds <= 0:
+        raise ConfigError(
+            "evidence_cache_max_age_seconds must be greater than zero"
+        )
+
     return config
 
 
@@ -196,5 +207,8 @@ _CONFIG = load_config()
 DEFAULT_SEARCH_PROVIDER = _CONFIG.search.provider
 EVIDENCE_LIMIT = _CONFIG.integration.evidence_limit
 EVIDENCE_MAX_CHARS = _CONFIG.integration.evidence_max_chars
+EVIDENCE_CACHE_MAX_AGE_SECONDS = (
+    _CONFIG.integration.evidence_cache_max_age_seconds
+)
 FILESYSTEM_MAX_FILES = _CONFIG.filesystem.max_files
 FILESYSTEM_MAX_CHARS_PER_FILE = _CONFIG.filesystem.max_chars_per_file

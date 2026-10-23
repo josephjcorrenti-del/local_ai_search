@@ -40,6 +40,7 @@ summary_model = lightweight_model
 default_mode = integrated
 evidence_limit = 5
 evidence_max_chars = 4000
+evidence_cache_max_age_seconds = 86400
 
 [filesystem]
 enabled = true
@@ -97,6 +98,7 @@ def test_load_config_from_file(tmp_path: Path):
     assert config.search.provider == "duckduckgo"
     assert config.integration.evidence_limit == 5
     assert config.integration.evidence_max_chars == 4000
+    assert config.integration.evidence_cache_max_age_seconds == 86400
 
 
 def test_reject_unsupported_provider():
@@ -109,6 +111,7 @@ def test_reject_unsupported_provider():
             default_mode="integrated",
             evidence_limit=5,
             evidence_max_chars=4000,
+            evidence_cache_max_age_seconds=86400,
         ),
         filesystem=filesystem_config_get(),
     )
@@ -130,3 +133,25 @@ def test_reject_invalid_ini(tmp_path: Path):
 
     with pytest.raises(configparser.MissingSectionHeaderError):
         load_config(config_path)
+
+
+def test_reject_nonpositive_evidence_cache_age():
+    config = AppConfig(
+        search=SearchConfig(
+            provider="local_search",
+            default_limit=10,
+        ),
+        integration=IntegrationConfig(
+            default_mode="integrated",
+            evidence_limit=5,
+            evidence_max_chars=4000,
+            evidence_cache_max_age_seconds=0,
+        ),
+        filesystem=filesystem_config_get(),
+    )
+
+    with pytest.raises(
+        ConfigError,
+        match="evidence_cache_max_age_seconds must be greater than zero",
+    ):
+        validate_config(config)

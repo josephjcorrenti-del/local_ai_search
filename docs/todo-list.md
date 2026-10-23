@@ -205,31 +205,21 @@
 [x] guarantee deterministic pytest does not call live web providers
 [ ] search fresh cached evidence before external retrieval
 [ ] reuse relevant cached evidence across differently worded queries
+
+[ ] define the external provider result/error contract
+[ ] add Tavily as the first authenticated general-web search provider
+[ ] keep API credentials outside config.ini and Git
+[ ] verify Tavily query-retention controls and enable zero-data retention when available
+[ ] convert successful provider results into existing web artifacts
+[ ] index and cache successful provider results
+[ ] distinguish results, genuine zero results, quota exhaustion, provider failure, and unavailable provider
+[ ] fail safely when external discovery is unavailable
+
 [ ] refresh relevant known source URLs before general web search
-[ ] build a context-resolved external retrieval query when needed
-[ ] distinguish results, genuine zero results, degraded provider, and unavailable provider
-[ ] cache exact-query successes, zero results, and provider failures
+[ ] use sitemaps and feeds to expand independently discovered sources
 [ ] add provider cooldown and circuit-breaker behavior
-[ ] support an optional authenticated fallback provider
-[ ] cache successful fallback results through the existing artifact system
-[ ] fail safely when every provider is unavailable
-
-[ ] support preferred and blocked website domains
-[ ] exclude blocked domains from cached and newly retrieved evidence
-[ ] record explicit source visits locally
-[ ] apply preferred-domain boosts only to already-relevant results
-[ ] apply a smaller capped previous-visit boost only to already-relevant results
-[ ] keep topical relevance, freshness, and authority above stored preferences
-[ ] expose domain and visit-ranking policy through config before adding frontend controls
-
-[ ] keep candidate discovery independent from preferred domains and visit history
-[ ] use preferred domains and previous visits only as bounded ranking signals
-[ ] rank relevance, freshness, and source quality above user preference
-[ ] diversify evidence across domains and source types when candidates permit
-[ ] expose discovery coverage and warn when results come only from cached or familiar sources
-
-[ ] use sitemaps and feeds to expand independently discovered sources, not to define the discovery universe
-
+[ ] evaluate Tavily result quality, privacy, and reliability
+[ ] retain Exa as the next provider candidate if Tavily is unsuitable
 [x] remove SearXNG from the application retrieval path
 [x] remove SearXNG configuration, documentation, and health assumptions
 [x] preserve the web-provider boundary for optional future providers

@@ -242,7 +242,7 @@ def test_top_level_query_web_only(monkeypatch):
     assert calls == ["jumping insects"]
 
 
-def test_top_level_query_runs_search_then_prompt_builder(monkeypatch, capsys):
+def test_top_level_query_uses_fresh_cache_then_prompt_builder(monkeypatch, capsys):
     from pathlib import Path
 
     from local_ai_search import cli
@@ -258,12 +258,8 @@ def test_top_level_query_runs_search_then_prompt_builder(monkeypatch, capsys):
         "results": [],
     }
 
-    def fake_search(query):
-        calls.append(("search", query))
-        return 0
-
-    def fake_latest(query):
-        calls.append(("latest", query))
+    def fake_latest_fresh(query, *, max_age_seconds):
+        calls.append(("latest_fresh", query, max_age_seconds))
         return Path("/tmp/search_what_is_sqlite.json")
 
     def fake_load(path, *, limit, max_chars):
@@ -278,8 +274,11 @@ def test_top_level_query_runs_search_then_prompt_builder(monkeypatch, capsys):
 
     from local_ai_search import evidence as evidence_module
 
-    monkeypatch.setattr(evidence_module.local_search, "search", fake_search)
-    monkeypatch.setattr(evidence_module, "latest_web_artifact_for_query", fake_latest)
+    monkeypatch.setattr(
+        evidence_module,
+        "latest_fresh_web_artifact_for_query",
+        fake_latest_fresh,
+    )
     monkeypatch.setattr(evidence_module, "load_evidence_from_local_search", fake_load)
     monkeypatch.setattr(cli.prompt_builder, "run_query", fake_run_query)
     monkeypatch.setattr("sys.argv", ["local-ai-search", "what is sqlite?"])
@@ -287,8 +286,7 @@ def test_top_level_query_runs_search_then_prompt_builder(monkeypatch, capsys):
     assert cli.main() == 0
 
     assert calls == [
-        ("search", "what is sqlite?"),
-        ("latest", "what is sqlite?"),
+        ("latest_fresh", "what is sqlite?", 86400),
         ("load", "/tmp/search_what_is_sqlite.json", 5, 4000),
         ("run_query", "what is sqlite?", evidence, None),
     ]

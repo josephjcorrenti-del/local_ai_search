@@ -159,3 +159,46 @@ def test_resolve_evidence_uses_filesystem_when_provided(monkeypatch):
         ("filesystem", "/tmp/project", ["README.md"], 123),
     ]
     assert resolved["artifact_type"] == "filesystem_context"
+
+
+def test_resolve_evidence_uses_fresh_cache_before_search(
+    monkeypatch,
+) -> None:
+    from pathlib import Path
+
+    from local_ai_search import evidence
+    from local_ai_search.intent_gate import IntentDecision
+
+    calls = []
+    cached_evidence = good_evidence()
+
+    monkeypatch.setattr(
+        evidence,
+        "latest_fresh_web_artifact_for_query",
+        lambda query, *, max_age_seconds: calls.append(
+            ("cache", query, max_age_seconds)
+        ) or Path("/tmp/cached.json"),
+    )
+    monkeypatch.setattr(
+        evidence,
+        "load_evidence_from_local_search",
+        lambda path, *, limit, max_chars: calls.append(
+            ("load", path, limit, max_chars)
+        ) or cached_evidence,
+    )
+    monkeypatch.setattr(
+        evidence.local_search,
+        "search",
+        lambda query: calls.append(("search", query)) or 0,
+    )
+
+    resolved = evidence.resolve_evidence(
+        "antique shops",
+        decision=IntentDecision("retrieve", "test"),
+    )
+
+    assert resolved == cached_evidence
+    assert calls == [
+        ("cache", "antique shops", 86400),
+        ("load", Path("/tmp/cached.json"), 5, 4000),
+    ]
