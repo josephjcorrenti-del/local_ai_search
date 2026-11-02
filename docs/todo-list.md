@@ -203,8 +203,8 @@
 #### Search independence
 
 [x] guarantee deterministic pytest does not call live web providers
-[ ] search fresh cached evidence before external retrieval
-[ ] reuse relevant cached evidence across differently worded queries
+[x] search fresh cached evidence before external retrieval
+[x] reuse relevant cached evidence across differently worded queries
 
 [ ] define the external provider result/error contract
 [ ] add Tavily as the first authenticated general-web search provider

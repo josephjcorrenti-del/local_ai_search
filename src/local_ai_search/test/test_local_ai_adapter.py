@@ -127,3 +127,71 @@ def test_chat_passes_session_and_orchestrator_context(
             "1,3",
         ]
     ]
+
+
+def test_local_search_results_returns_structured_cached_results(
+    monkeypatch,
+) -> None:
+    from subprocess import CompletedProcess
+
+    from local_ai_search.adapters import local_search
+
+    calls = []
+
+    def run_stub(command, **kwargs):
+        calls.append((command, kwargs))
+        return CompletedProcess(
+            command,
+            0,
+            stdout='[{"source_type": "web_artifact", "raw_ref": "/tmp/cache.json"}]',
+            stderr="",
+        )
+
+    monkeypatch.setattr(local_search.subprocess, "run", run_stub)
+
+    results = local_search.search_results(
+        "current Python version",
+        limit=7,
+    )
+
+    assert results == [
+        {
+            "source_type": "web_artifact",
+            "raw_ref": "/tmp/cache.json",
+        }
+    ]
+    assert calls == [
+        (
+            [
+                "local-search",
+                "search",
+                "current Python version",
+                "--limit",
+                "7",
+                "--json",
+                "--local-only",
+            ],
+            {
+                "check": False,
+                "capture_output": True,
+                "text": True,
+            },
+        )
+    ]
+
+
+def test_local_search_uses_search_subcommand(monkeypatch) -> None:
+    from local_ai_search.adapters import local_search
+
+    calls = []
+
+    monkeypatch.setattr(
+        local_search,
+        "run_external_command",
+        lambda command: calls.append(command) or 0,
+    )
+
+    assert local_search.search("Python release") == 0
+    assert calls == [
+        ["local-search", "search", "Python release"]
+    ]

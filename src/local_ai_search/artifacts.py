@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 import json
 from pathlib import Path
 import re
+from typing import Any
 
 from local_ai_search.adapters.local_search import LocalSearchAdapterError
 from local_search.paths import ARTIFACTS_DIR
@@ -58,14 +59,13 @@ def artifact_fetched_at_get(path: Path) -> datetime:
     return fetched_at
 
 
-def latest_fresh_web_artifact_for_query(
-    query: str,
+def fresh_web_artifact_validate(
+    artifact_path: Path,
     *,
     max_age_seconds: int,
     now: datetime | None = None,
 ) -> Path:
-    """Return the newest exact-query artifact when it is still fresh."""
-    artifact_path = latest_web_artifact_for_query(query)
+    """Return an artifact path when its retrieval timestamp is fresh."""
     fetched_at = artifact_fetched_at_get(artifact_path)
     checked_at = now or datetime.now(timezone.utc)
 
@@ -88,3 +88,55 @@ def latest_fresh_web_artifact_for_query(
         )
 
     return artifact_path
+
+
+def latest_fresh_web_artifact_for_query(
+    query: str,
+    *,
+    max_age_seconds: int,
+    now: datetime | None = None,
+) -> Path:
+    """Return the newest exact-query artifact when it is still fresh."""
+    return fresh_web_artifact_validate(
+        latest_web_artifact_for_query(query),
+        max_age_seconds=max_age_seconds,
+        now=now,
+    )
+
+
+def first_fresh_related_web_artifact(
+    results: list[dict[str, Any]],
+    *,
+    max_age_seconds: int,
+    now: datetime | None = None,
+) -> Path:
+    """Return the highest-ranked fresh web artifact from FTS results."""
+    seen_paths: set[Path] = set()
+
+    for result in results:
+        if result.get("source_type") != "web_artifact":
+            continue
+
+        raw_ref = result.get("raw_ref")
+        if not isinstance(raw_ref, str) or not raw_ref.strip():
+            continue
+
+        artifact_path = Path(raw_ref).resolve()
+
+        if artifact_path in seen_paths:
+            continue
+
+        seen_paths.add(artifact_path)
+
+        try:
+            return fresh_web_artifact_validate(
+                artifact_path,
+                max_age_seconds=max_age_seconds,
+                now=now,
+            )
+        except LocalSearchAdapterError:
+            continue
+
+    raise LocalSearchAdapterError(
+        "no fresh related web artifact found"
+    )

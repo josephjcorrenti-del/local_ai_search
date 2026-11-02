@@ -93,3 +93,62 @@ def test_latest_fresh_web_artifact_rejects_future_match(
             max_age_seconds=86400,
             now=datetime(2026, 10, 16, 12, 0, tzinfo=timezone.utc),
         )
+
+
+def test_related_artifact_selects_first_fresh_web_result(
+    tmp_path,
+) -> None:
+    from datetime import datetime, timezone
+    import json
+
+    from local_ai_search.artifacts import (
+        first_fresh_related_web_artifact,
+    )
+
+    stale_path = tmp_path / "stale.json"
+    stale_path.write_text(
+        json.dumps(
+            {
+                "fetched_at": "2026-10-24T12:00:00+00:00",
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    fresh_path = tmp_path / "fresh.json"
+    fresh_path.write_text(
+        json.dumps(
+            {
+                "fetched_at": "2026-10-26T11:30:00+00:00",
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    result = first_fresh_related_web_artifact(
+        [
+            {
+                "source_type": "file",
+                "raw_ref": str(fresh_path),
+            },
+            {
+                "source_type": "web_artifact",
+                "raw_ref": str(stale_path),
+            },
+            {
+                "source_type": "web_artifact",
+                "raw_ref": str(fresh_path),
+            },
+        ],
+        max_age_seconds=86400,
+        now=datetime(
+            2026,
+            10,
+            26,
+            12,
+            0,
+            tzinfo=timezone.utc,
+        ),
+    )
+
+    assert result == fresh_path.resolve()

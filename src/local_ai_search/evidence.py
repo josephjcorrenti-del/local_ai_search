@@ -9,6 +9,7 @@ from local_ai_search.adapters.local_search import (
 )
 from local_ai_search.adapters import local_search
 from local_ai_search.artifacts import (
+    first_fresh_related_web_artifact,
     latest_fresh_web_artifact_for_query,
 )
 from local_ai_search.config import (
@@ -123,6 +124,44 @@ def resolve_evidence(
         try:
             artifact_path = latest_fresh_web_artifact_for_query(
                 query,
+                max_age_seconds=EVIDENCE_CACHE_MAX_AGE_SECONDS,
+            )
+
+            return load_evidence_from_local_search(
+                artifact_path,
+                limit=evidence_limit,
+                max_chars=evidence_max_chars,
+            )
+        except (LocalSearchAdapterError, EvidenceError):
+            pass
+
+        try:
+            related_results = local_search.search_results(
+                query,
+                limit=max(evidence_limit, 10),
+            )
+            artifact_path = first_fresh_related_web_artifact(
+                related_results,
+                max_age_seconds=EVIDENCE_CACHE_MAX_AGE_SECONDS,
+            )
+
+            return load_evidence_from_local_search(
+                artifact_path,
+                limit=evidence_limit,
+                max_chars=evidence_max_chars,
+            )
+        except (LocalSearchAdapterError, EvidenceError):
+            pass
+
+        search_exit_code = local_search.search(query)
+
+        try:
+            related_results = local_search.search_results(
+                query,
+                limit=max(evidence_limit, 10),
+            )
+            artifact_path = first_fresh_related_web_artifact(
+                related_results,
                 max_age_seconds=EVIDENCE_CACHE_MAX_AGE_SECONDS,
             )
 

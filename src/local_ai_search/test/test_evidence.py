@@ -202,3 +202,74 @@ def test_resolve_evidence_uses_fresh_cache_before_search(
         ("cache", "antique shops", 86400),
         ("load", Path("/tmp/cached.json"), 5, 4000),
     ]
+
+
+def test_resolve_evidence_uses_related_cache_before_external_search(
+    monkeypatch,
+) -> None:
+    from pathlib import Path
+
+    from local_ai_search import evidence
+    from local_ai_search.adapters.local_search import (
+        LocalSearchAdapterError,
+    )
+    from local_ai_search.intent_gate import IntentDecision
+
+    calls = []
+    cached_evidence = good_evidence()
+    related_path = Path("/tmp/python-release-cache.json")
+    related_results = [
+        {
+            "source_type": "web_artifact",
+            "raw_ref": str(related_path),
+        }
+    ]
+
+    def exact_cache_missing(query, *, max_age_seconds):
+        calls.append(("exact", query, max_age_seconds))
+        raise LocalSearchAdapterError("no exact cache")
+
+    monkeypatch.setattr(
+        evidence,
+        "latest_fresh_web_artifact_for_query",
+        exact_cache_missing,
+    )
+    monkeypatch.setattr(
+        evidence.local_search,
+        "search_results",
+        lambda query, *, limit: calls.append(
+            ("related-search", query, limit)
+        ) or related_results,
+    )
+    monkeypatch.setattr(
+        evidence,
+        "first_fresh_related_web_artifact",
+        lambda results, *, max_age_seconds: calls.append(
+            ("related-select", results, max_age_seconds)
+        ) or related_path,
+    )
+    monkeypatch.setattr(
+        evidence,
+        "load_evidence_from_local_search",
+        lambda path, *, limit, max_chars: calls.append(
+            ("load", path, limit, max_chars)
+        ) or cached_evidence,
+    )
+    monkeypatch.setattr(
+        evidence.local_search,
+        "search",
+        lambda query: calls.append(("external", query)) or 0,
+    )
+
+    resolved = evidence.resolve_evidence(
+        "current stable Python version",
+        decision=IntentDecision("retrieve", "test"),
+    )
+
+    assert resolved == cached_evidence
+    assert calls == [
+        ("exact", "current stable Python version", 86400),
+        ("related-search", "current stable Python version", 10),
+        ("related-select", related_results, 86400),
+        ("load", related_path, 5, 4000),
+    ]
