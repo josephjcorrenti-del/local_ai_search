@@ -206,20 +206,52 @@
 [x] search fresh cached evidence before external retrieval
 [x] reuse relevant cached evidence across differently worded queries
 
-[ ] define the external provider result/error contract
+##### Provider-independent discovery
+
+[ ] refresh relevant known source URLs before general web search
+[ ] discover sitemaps and feeds through known pages and robots.txt
+[ ] respect robots.txt, crawl delays, request rates, and bounded fetch limits
+[ ] use sitemaps and feeds to expand independently discovered sources
+[ ] follow relevant links with bounded same-site and cross-site expansion
+[ ] fetch current live pages from discovered URLs before using them as evidence
+[ ] use Common Crawl and other open corpora as discovery inputs
+[ ] avoid treating Common Crawl or other historical corpora as current evidence
+[ ] preserve discovery provenance for every fetched and indexed source
+[ ] expose when coverage comes only from cached, familiar, or historical sources
+
+##### Optional authenticated discovery
+
+[x] define the external provider result/error contract
+[ ] call a general-web provider only when local and provider-independent discovery are insufficient
 [ ] add Tavily as the first authenticated general-web search provider
+[ ] track provider usage and enforce configurable request budgets
+[ ] preserve configurable quota reserves for freshness-critical queries
 [ ] keep API credentials outside config.ini and Git
 [ ] verify Tavily query-retention controls and enable zero-data retention when available
 [ ] convert successful provider results into existing web artifacts
 [ ] index and cache successful provider results
-[ ] distinguish results, genuine zero results, quota exhaustion, provider failure, and unavailable provider
-[ ] fail safely when external discovery is unavailable
-
-[ ] refresh relevant known source URLs before general web search
-[ ] use sitemaps and feeds to expand independently discovered sources
-[ ] add provider cooldown and circuit-breaker behavior
-[ ] evaluate Tavily result quality, privacy, and reliability
+[ ] evaluate Tavily result quality, privacy, quota use, and reliability
 [ ] retain Exa as the next provider candidate if Tavily is unsuitable
+
+##### Retrieval resilience
+
+[ ] distinguish results, genuine zero results, rate limiting, quota exhaustion, provider failure, and unavailable provider
+[ ] cache successful results and temporarily cache zero-result and failure outcomes
+[ ] add provider cooldown, retry backoff, and circuit-breaker behavior
+[ ] automatically fall back from retrieval failures without interactive user intervention
+[ ] stop contacting quota-exhausted providers until their reset or cooldown expires
+[ ] automatically retry suspended providers after their reset or cooldown expires
+[ ] retain successfully fetched artifacts when later indexing fails
+[ ] use suitable older cached evidence with explicit freshness warnings when fresh retrieval fails
+[ ] fail safely when every discovery source is unavailable
+
+##### Structured current information
+
+[ ] identify current-data queries that are better served by direct authoritative sources
+[ ] prefer specialized sources for structured data such as weather before consuming general-search quota
+
+##### Removed provider
+
 [x] remove SearXNG from the application retrieval path
 [x] remove SearXNG configuration, documentation, and health assumptions
 [x] preserve the web-provider boundary for optional future providers

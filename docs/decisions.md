@@ -660,3 +660,38 @@ Recent conversation should remain verbatim when practical. Older or oversized co
 Retrieved evidence keeps its own configured budget. Session history, session files, workspace files, and web evidence require separate budgets. Context must be measured by size or tokens—not only message count—and must reserve room for the current question and answer.
 
 The policy may become machine-readable when the context composer is implemented. Its storage format is not decided yet.
+
+## 2026-11-18 - External search provider contract
+
+`local_search` owns the external search provider contract because it owns
+retrieval, search providers, artifact persistence, and evidence shaping.
+
+External providers must normalize their responses into:
+
+- `SearchProviderResult`
+- `SearchProviderResponse`
+- the provider-neutral `SearchProviderOutcome` states
+
+Supported outcomes are:
+
+- `results`
+- `zero_results`
+- `rate_limited`
+- `quota_exhausted`
+- `provider_failure`
+- `unavailable`
+
+Expected provider conditions are represented as response outcomes rather than
+being exposed as provider-specific exceptions.
+
+The contract records what happened. It does not decide retry, fallback,
+cooldown, circuit-breaker, persistence, or user-facing behavior. Those are
+separate deterministic retrieval-policy responsibilities.
+
+Successful results require validated HTTP or HTTPS URLs. Failure outcomes
+require diagnostic details. Optional quota, quota-reset, and retry metadata
+may be supplied when the provider exposes them.
+
+Provider-specific payloads and relevance scores must not cross the common
+provider boundary. Provider results will later be converted into the existing
+web artifact contract before being exposed to `local_ai_search`.
