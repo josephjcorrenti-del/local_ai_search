@@ -154,26 +154,6 @@ def resolve_evidence(
             pass
 
         search_exit_code = local_search.search(query)
-
-        try:
-            related_results = local_search.search_results(
-                query,
-                limit=max(evidence_limit, 10),
-            )
-            artifact_path = first_fresh_related_web_artifact(
-                related_results,
-                max_age_seconds=EVIDENCE_CACHE_MAX_AGE_SECONDS,
-            )
-
-            return load_evidence_from_local_search(
-                artifact_path,
-                limit=evidence_limit,
-                max_chars=evidence_max_chars,
-            )
-        except (LocalSearchAdapterError, EvidenceError):
-            pass
-
-        search_exit_code = local_search.search(query)
         if search_exit_code != 0:
             return None
 
