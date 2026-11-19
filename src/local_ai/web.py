@@ -26,13 +26,13 @@ import time
 import urllib.parse
 import urllib.request
 from datetime import datetime, timedelta, UTC
-from html import unescape
 from pathlib import Path
 from typing import Any
 
 from local_ai.log import log_event
 from local_ai.paths import paths_get
 from local_ai.content_window import content_window_get
+from local_search.web_page import web_page_fetch
 
 
 def web_timestamp_now_get() -> str:
@@ -53,74 +53,6 @@ def web_artifact_path_get(url: str) -> str:
     return str(web_dir / f"{artifact_id}.json")
 
 
-def _html_title_get(html_text: str) -> str | None:
-    """Extract the HTML title from a page, if present."""
-    match = re.search(
-        r"<title[^>]*>(.*?)</title>",
-        html_text,
-        flags=re.IGNORECASE | re.DOTALL,
-    )
-    if not match:
-        return None
-
-    title = unescape(match.group(1)).strip()
-    title = re.sub(r"\s+", " ", title)
-    return title or None
-
-
-def _html_text_extract(html_text: str) -> str:
-    """Extract normalized plain text content from HTML with basic structure."""
-
-    # Remove non-content blocks
-    text = re.sub(r"(?is)<script[^>]*>.*?</script>", " ", html_text)
-    text = re.sub(r"(?is)<style[^>]*>.*?</style>", " ", text)
-    text = re.sub(r"(?is)<noscript[^>]*>.*?</noscript>", " ", text)
-
-    # Convert block-level tags to newlines (opening + closing)
-    text = re.sub(r"(?i)<(p|div|h[1-6]|li|section|article)[^>]*>", "\n", text)
-    text = re.sub(r"(?i)</(p|div|h[1-6]|li|section|article)>", "\n", text)
-    text = re.sub(r"(?i)<br[^>]*>", "\n", text)
-
-    # Remove all remaining tags
-    text = re.sub(r"(?s)<[^>]+>", " ", text)
-
-    # Decode HTML entities
-    text = unescape(text)
-
-    # Normalize whitespace but preserve line structure
-    lines = [re.sub(r"\s+", " ", line).strip() for line in text.split("\n")]
-
-    # Drop empty lines
-    lines = [line for line in lines if line]
-
-    # Deduplicate lines
-    seen = set()
-    deduped = []
-    for line in lines:
-        if line not in seen:
-            seen.add(line)
-            deduped.append(line)
-
-    # Drop duplicate title/header if repeated
-    if len(deduped) > 1:
-        first = deduped[0].lower()
-        second = deduped[1].lower()
-
-        if first == second or first.startswith(second) or second.startswith(first):
-            deduped = deduped[1:]
-
-    # Light sentence splitting for readability
-    expanded = []
-    for line in deduped:
-        parts = re.split(r"(?<=[.!?])\s+", line)
-        expanded.extend(parts)
-
-    # Final cleanup
-    final_lines = [line.strip() for line in expanded if line.strip()]
-
-    return "\n".join(final_lines)
-
-
 # WHY:
 # Web fetch is explicit and artifact-based. Every fetch both returns content
 # and writes an inspectable JSON snapshot so later commands can reason over
@@ -134,58 +66,27 @@ def web_fetch(url: str) -> dict[str, Any]:
 
     started_at = time.perf_counter()
 
-    req = urllib.request.Request(
-        url,
-        headers={
-            "User-Agent": "local_ai/0.1",
-        },
-        method="GET",
-    )
-
     try:
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            final_url = resp.geturl()
-            content_type = resp.headers.get("Content-Type", "")
-            raw_bytes = resp.read()
-
-    except urllib.error.HTTPError as exc:
-        body = exc.read().decode("utf-8", errors="replace")
+        artifact = web_page_fetch(
+            url,
+            user_agent="local_ai/0.1",
+        )
+    except (RuntimeError, ValueError) as exc:
         log_event(
             "web.fetch.error",
             level="error",
             url=url,
-            error=f"HTTP {exc.code}: {body}",
+            error=str(exc),
+            event_outcome="failure",
         )
         raise RuntimeError(f"Failed to fetch URL: {url}") from exc
 
-    except urllib.error.URLError as exc:
-        reason = getattr(exc, "reason", exc)
-        log_event(
-            "web.fetch.error",
-            level="error",
-            url=url,
-            error=f"Connection failed: {reason}",
-        )
-        raise RuntimeError(f"Failed to fetch URL: {url}") from exc
-
-    html_text = raw_bytes.decode("utf-8", errors="replace")
-    title = _html_title_get(html_text)
-    content_text = _html_text_extract(html_text)
-
-    artifact = {
-        "url": final_url,
-        "fetched_at": web_timestamp_now_get(),
-        "content_type": content_type,
-        "title": title,
-        "content_text": content_text,
-    }
-
-    artifact_path = web_artifact_path_get(final_url)
+    artifact_path = web_artifact_path_get(artifact["url"])
 
     log_event(
         "web.artifact.save",
         path=artifact_path,
-        url=final_url,
+        url=artifact["url"],
     )
 
     with open(artifact_path, "w", encoding="utf-8") as fh:
@@ -196,9 +97,11 @@ def web_fetch(url: str) -> dict[str, Any]:
     log_event(
         "web.fetch.ready",
         path=artifact_path,
-        url=final_url,
+        url=artifact["url"],
         event_outcome="success",
-        elapsed_ms=int((time.perf_counter() - started_at) * 1000),
+        elapsed_ms=int(
+            (time.perf_counter() - started_at) * 1000
+        ),
     )
 
     return artifact
